@@ -17,6 +17,9 @@ import com.yusufvural.kaloritakip.ui.AppNavHost
 import com.yusufvural.kaloritakip.ui.ModernFloatingNavigationBar
 import com.yusufvural.kaloritakip.ui.theme.KaloritakipTheme
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

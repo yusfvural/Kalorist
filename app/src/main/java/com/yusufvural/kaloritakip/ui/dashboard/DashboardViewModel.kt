@@ -9,62 +9,60 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.*
 
-class DashboardViewModel : ViewModel() {
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import com.yusufvural.kaloritakip.domain.FoodRepository
+
+@HiltViewModel
+class DashboardViewModel @Inject constructor(
+    private val repository: FoodRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
     init {
-        // Mock initial data to match reference image
-        loadInitialData()
+        observeFoodEntries()
     }
 
-    private fun loadInitialData() {
-        val mockEntries = listOf(
-            FoodEntry(UUID.randomUUID().toString(), "Chicken Breast", 165, 31.0, 0.0, 3.6, MealType.LUNCH),
-            FoodEntry(UUID.randomUUID().toString(), "Broccoli", 55, 3.7, 11.2, 0.6, MealType.LUNCH)
-        )
-        
-        _uiState.update { currentState ->
-            currentState.copy(
-                entries = mockEntries,
-                summary = DailySummary(
-                    totalCalories = 1800,
-                    goalCalories = 2200,
-                    proteinConsumed = 85.0,
-                    proteinGoal = 150.0,
-                    carbsConsumed = 49.0,
-                    carbsGoal = 68.0,
-                    fatConsumed = 25.0,
-                    fatGoal = 50.0
-                ),
-                steps = 6420,
-                stepGoal = 10000
-            )
+    private fun observeFoodEntries() {
+        viewModelScope.launch {
+            repository.getAllEntries().collect { entries ->
+                _uiState.update { currentState ->
+                    val totalCalories = entries.sumOf { it.calories }
+                    val totalProtein = entries.sumOf { it.protein }
+                    val totalCarbs = entries.sumOf { it.carbs }
+                    val totalFat = entries.sumOf { it.fat }
+                    
+                    currentState.copy(
+                        entries = entries,
+                        summary = currentState.summary.copy(
+                            totalCalories = totalCalories,
+                            proteinConsumed = totalProtein,
+                            carbsConsumed = totalCarbs,
+                            fatConsumed = totalFat
+                        )
+                    )
+                }
+            }
         }
     }
 
-    fun addFood(name: String, calories: Int, mealType: MealType) {
-        val newEntry = FoodEntry(
-            id = UUID.randomUUID().toString(),
-            name = name,
-            calories = calories,
-            protein = 0.0, // Default for now
-            carbs = 0.0,
-            fat = 0.0,
-            mealType = mealType
-        )
-        
-        _uiState.update { currentState ->
-            val updatedEntries = currentState.entries + newEntry
-            currentState.copy(
-                entries = updatedEntries,
-                summary = currentState.summary.copy(
-                    totalCalories = currentState.summary.totalCalories + calories
-                )
+    fun addFood(name: String, calories: Int, protein: Double, carbs: Double, fat: Double, mealType: MealType) {
+        viewModelScope.launch {
+            val newEntry = FoodEntry(
+                id = UUID.randomUUID().toString(),
+                name = name,
+                calories = calories,
+                protein = protein,
+                carbs = carbs,
+                fat = fat,
+                mealType = mealType
             )
+            repository.addFoodEntry(newEntry)
         }
     }
 

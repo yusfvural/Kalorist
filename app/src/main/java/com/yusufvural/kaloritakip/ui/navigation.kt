@@ -50,7 +50,7 @@ fun ModernFloatingNavigationBar(
                 Icon(Icons.Rounded.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(35.dp))
             }
 
-            NavIcon(Icons.Rounded.Search, "library", currentRoute, onNavigate)
+            NavIcon(Icons.Rounded.DirectionsRun, "analysis", currentRoute, onNavigate)
             NavIcon(Icons.Rounded.Person, "profile", currentRoute, onNavigate)
         }
     }

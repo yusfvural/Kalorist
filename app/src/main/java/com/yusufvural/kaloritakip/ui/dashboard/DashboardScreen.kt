@@ -20,14 +20,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.yusufvural.kaloritakip.model.DailySummary
+import com.yusufvural.kaloritakip.model.MealType
 import com.yusufvural.kaloritakip.ui.theme.KaloritakipTheme
 
 // --- STATEFUL COMPOSABLE ---
 @Composable
 fun DashboardScreen(
-    dashboardViewModel: DashboardViewModel = viewModel(),
+    dashboardViewModel: DashboardViewModel = hiltViewModel(),
     onNavigate: (String) -> Unit = {}
 ) {
     val uiState by dashboardViewModel.uiState.collectAsState()
@@ -215,11 +216,11 @@ fun MacroCard(name: String, progress: Float, color: Color, modifier: Modifier) {
 
 @Composable
 fun MealGridSection(onNavigate: (String) -> Unit = {}) {
-    val meals = listOf(
-        Pair("Kahvaltı", Icons.Rounded.WbSunny),
-        Pair("Öğle", Icons.Rounded.LunchDining),
-        Pair("Akşam", Icons.Rounded.DinnerDining),
-        Pair("Atıştırma", Icons.Rounded.LocalPizza)
+    val meals: List<Triple<String, ImageVector, MealType>> = listOf(
+        Triple("Kahvaltı", Icons.Rounded.WbSunny, MealType.BREAKFAST),
+        Triple("Öğle", Icons.Rounded.LunchDining, MealType.LUNCH),
+        Triple("Akşam", Icons.Rounded.DinnerDining, MealType.DINNER),
+        Triple("Atıştırma", Icons.Rounded.LocalPizza, MealType.SNACK)
     )
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -227,19 +228,19 @@ fun MealGridSection(onNavigate: (String) -> Unit = {}) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(meals) { meal ->
+        items(meals) { (label, icon, type) ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)
-                    .clickable { onNavigate("add_food") },
+                    .clickable { onNavigate("add_food?mealType=${type.name}") },
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 border = BorderStroke(1.dp, Color(0xFFF0F0F0))
             ) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                    Icon(meal.second, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.align(Alignment.TopStart))
-                    Text(meal.first, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomStart))
+                    Icon(icon, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.align(Alignment.TopStart))
+                    Text(label, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomStart))
                 }
             }
         }

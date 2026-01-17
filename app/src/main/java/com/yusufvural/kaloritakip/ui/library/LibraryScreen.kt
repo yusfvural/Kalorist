@@ -16,16 +16,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
+
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.yusufvural.kaloritakip.domain.model.SearchResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen() {
-    var searchQuery by remember { mutableStateOf("") }
+fun LibraryScreen(
+    viewModel: LibraryViewModel = hiltViewModel(),
+    onNavigateToDetail: (String, Int, Double, Double, Double) -> Unit = { _, _, _, _, _ -> }
+) {
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFBFBFD)) // Dashboard ile aynı arka plan
+            .background(Color(0xFFFBFBFD))
             .padding(horizontal = 20.dp)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -38,7 +46,7 @@ fun LibraryScreen() {
         // 1. MODERN ARAMA ÇUBUĞU
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { searchQuery = it },
+            onValueChange = { viewModel.onSearchQueryChanged(it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp)),
@@ -56,32 +64,65 @@ fun LibraryScreen() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 2. BESİN LİSTESİ
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 120.dp) // Dock menü için boşluk
-        ) {
-            // Örnek besin listesi (Buraya daha sonra API/Room gelecek)
-            val foods = listOf(
-                LibraryFoodItem("Fıstık Ezmesi", "100g", 588, 25.0, 20.0, 50.0),
-                LibraryFoodItem("Yumurta", "1 adet", 78, 6.0, 0.6, 5.0),
-                LibraryFoodItem("Tavuk Göğsü", "100g", 165, 31.0, 0.0, 3.6),
-                LibraryFoodItem("Yulaf", "100g", 389, 16.9, 66.0, 6.9),
-                LibraryFoodItem("Brokoli", "100g", 34, 2.8, 7.0, 0.4)
-            )
-
-            items(foods) { food ->
-                LibraryFoodCard(food)
+        // 2. BESİN LİSTESİ (REAKTİF)
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (val state = uiState) {
+                is LibraryUiState.Idle -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(Icons.Rounded.Search, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Binlerce besin arasından ara...", color = Color.Gray)
+                    }
+                }
+                is LibraryUiState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color(0xFFE31E24)
+                    )
+                }
+                is LibraryUiState.Success -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(bottom = 120.dp)
+                    ) {
+                        items(state.results) { food ->
+                            LibraryFoodCard(food, onClick = {
+                                onNavigateToDetail(food.label, food.calories, food.protein, food.fat, food.carbs)
+                            })
+                        }
+                    }
+                }
+                is LibraryUiState.Empty -> {
+                    Text(
+                        "Sonuç bulunamadı.",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.Gray
+                    )
+                }
+                is LibraryUiState.Error -> {
+                    Text(
+                        state.message,
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color(0xFFE31E24),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun LibraryFoodCard(food: LibraryFoodItem) {
+fun LibraryFoodCard(food: SearchResult, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp), // Dashboard kartlarıyla uyumlu yumuşaklık
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
@@ -91,23 +132,22 @@ fun LibraryFoodCard(food: LibraryFoodItem) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(food.name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                    Text(food.portion, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(food.label, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Text("100g için değerler", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
                 }
-                Text("${food.kcal} kcal", fontWeight = FontWeight.ExtraBold, color = Color(0xFFE31E24), fontSize = 18.sp)
+                Text("${food.calories} kcal", fontWeight = FontWeight.ExtraBold, color = Color(0xFFE31E24), fontSize = 18.sp)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Makro Bilgi Satırı (Hızlı Bakış)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                MacroMiniInfo("Protein", "${food.protein}g", Color(0xFFE31E24))
-                MacroMiniInfo("Karbon.", "${food.carbs}g", Color(0xFF4CAF50))
-                MacroMiniInfo("Yağ", "${food.fat}g", Color(0xFFFFC107))
+                MacroMiniInfo("Protein", "${food.protein.roundToInt()}g", Color(0xFFE31E24))
+                MacroMiniInfo("Karbon.", "${food.carbs.roundToInt()}g", Color(0xFF4CAF50))
+                MacroMiniInfo("Yağ", "${food.fat.roundToInt()}g", Color(0xFFFFC107))
             }
         }
     }
@@ -120,13 +160,3 @@ fun MacroMiniInfo(label: String, value: String, color: Color) {
         Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
     }
 }
-
-// Veri Modeli
-data class LibraryFoodItem(
-    val name: String,
-    val portion: String,
-    val kcal: Int,
-    val protein: Double,
-    val carbs: Double,
-    val fat: Double
-)

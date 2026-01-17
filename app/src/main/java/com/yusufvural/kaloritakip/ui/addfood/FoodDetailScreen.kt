@@ -22,11 +22,18 @@ import kotlin.math.roundToInt
 fun FoodDetailScreen(
     foodName: String,
     baseCalories: Int,
+    protein: Double = 0.0,
+    fat: Double = 0.0,
+    carbs: Double = 0.0,
     onNavigateBack: () -> Unit,
-    onAddComplete: () -> Unit
+    onAddComplete: (String, Int, Double, Double, Double) -> Unit
 ) {
     var portion by remember { mutableStateOf(100f) } // Default 100g
-    val totalCalories = remember(portion) { (baseCalories * (portion / 100f)).roundToInt() }
+    val factor = portion / 100f
+    val totalCalories = remember(portion) { (baseCalories * factor).roundToInt() }
+    val totalProtein = remember(portion) { protein * factor }
+    val totalFat = remember(portion) { fat * factor }
+    val totalCarbs = remember(portion) { carbs * factor }
 
     Scaffold(
         topBar = {
@@ -112,7 +119,7 @@ fun FoodDetailScreen(
 
             // 4. EKLE BUTONU
             Button(
-                onClick = onAddComplete,
+                onClick = { onAddComplete(foodName, totalCalories, totalProtein, totalFat, totalCarbs) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp)
