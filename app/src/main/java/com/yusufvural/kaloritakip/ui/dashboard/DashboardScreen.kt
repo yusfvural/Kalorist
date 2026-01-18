@@ -2,7 +2,9 @@ package com.yusufvural.kaloritakip.ui.dashboard
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.yusufvural.kaloritakip.model.DailySummary
 import com.yusufvural.kaloritakip.model.MealType
 import com.yusufvural.kaloritakip.ui.theme.KaloritakipTheme
+import java.util.Calendar
 
 // --- STATEFUL COMPOSABLE ---
 @Composable
@@ -33,355 +36,386 @@ fun DashboardScreen(
 ) {
     val uiState by dashboardViewModel.uiState.collectAsState()
 
-    DashboardContentV2(
+    DashboardContentV3(
         uiState = uiState,
         onNavigate = onNavigate,
         onAddWater = { dashboardViewModel.addWater(it) }
     )
 }
 
-// --- STATELESS COMPOSABLE ---
+// --- STATELESS COMPOSABLE (V3 - Reference Match) ---
 @Composable
-fun DashboardContentV2(
+fun DashboardContentV3(
     uiState: DashboardUiState,
     onNavigate: (String) -> Unit = {},
     onAddWater: (Int) -> Unit = {}
 ) {
-    val scrollState = rememberScrollState()
+    val meals = listOf(
+        MealItemData("Kahvaltı", Icons.Rounded.Coffee, MealType.BREAKFAST, "", 466, 566),
+        MealItemData("Öğle Yemeği", Icons.Rounded.LunchDining, MealType.LUNCH, "", 554, 755),
+        MealItemData("Akşam Yemeği", Icons.Rounded.DinnerDining, MealType.DINNER, "", 0, 600),
+        MealItemData("Atıştırmalık", Icons.Rounded.Fastfood, MealType.SNACK, "", 120, 200)
+    )
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFBFBFD))
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp),
+            .background(Color(0xFFFBFBFD)),
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 80.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp), // Öğeler arası boşluğu 12dp'ye indirdim
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        HeaderSection()
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        MainCalorieCard(uiState.summary)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        MacroGrid(uiState.summary)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        WaterTrackerCard(
-            currentValue = uiState.waterIntake,
-            goalValue = uiState.waterGoal,
-            onAddWater = onAddWater
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        StepTrackerCard(
-            currentSteps = uiState.steps,
-            stepGoal = uiState.stepGoal
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            "GÜNLÜK ÖĞÜNLER",
-            style = MaterialTheme.typography.titleSmall.copy(
-                letterSpacing = 1.2.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.ExtraBold
-            ),
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        MealGridSection(onNavigate = onNavigate)
-
-        // Menünün alt içeriği kapatmaması için ekstra boşluk
-        Spacer(modifier = Modifier.height(120.dp))
+        // Modular Items
+        dashboardHeader()
+        
+        dashboardSummary(uiState.summary)
+        
+        dashboardNutrition(meals, uiState, onNavigate)
     }
 }
 
+// --- MODULAR SECTION EXTENSIONS ---
+
+fun LazyListScope.dashboardHeader() {
+    item { HeaderSectionV3() }
+}
+
+fun LazyListScope.dashboardSummary(summary: DailySummary) {
+    item { 
+        SectionTitle("Özet", actionText = "Detaylar", onActionClick = { /* Details */ })
+        EnhancedSummaryCard(summary = summary)
+    }
+}
+
+fun LazyListScope.dashboardNutrition(
+    meals: List<MealItemData>, 
+    uiState: DashboardUiState, 
+    onNavigate: (String) -> Unit
+) {
+    item { 
+        SectionTitle("Beslenme", actionText = "Daha Fazla", onActionClick = { /* More */ })
+    }
+    
+    items(meals) { meal ->
+        val entriesForMeal = uiState.entries.filter { it.mealType == meal.type }
+        val currentCal = entriesForMeal.sumOf { it.calories }
+        val description = if (entriesForMeal.isEmpty()) "" else entriesForMeal.joinToString(", ") { it.name }.take(35) + (if (entriesForMeal.joinToString(", ").length > 35) "..." else "")
+        
+        MealRow(
+            label = meal.label,
+            icon = meal.icon,
+            currentCal = currentCal,
+            goalCal = meal.goalCal,
+            description = description,
+            onAddClick = { onNavigate("add_food?mealType=${meal.type.name}") }
+        )
+    }
+}
 
 @Composable
-fun HeaderSection() {
-    val calendar = remember { java.util.Calendar.getInstance() }
-    val hour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
-    val greeting = when (hour) {
-        in 6..11 -> "Günaydın,"
-        in 12..17 -> "Tünaydın,"
-        in 18..21 -> "İyi Akşamlar,"
-        else -> "İyi Geceler,"
-    }
-
+fun SectionTitle(title: String, actionText: String = "Details", onActionClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Black,
+                fontSize = 24.sp,
+                letterSpacing = (-0.5).sp
+            )
+        )
+        Text(
+            actionText,
+            color = Color(0xFFE31E24), // Kırmızı tema
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            modifier = Modifier.padding(bottom = 4.dp).clickable { onActionClick() }
+        )
+    }
+}
+
+@Composable
+fun HeaderSectionV3() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 40.dp), // Üstte daha fazla boşluk
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            Text(greeting, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-            Text("Hedefine Az Kaldı! 🚀", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(
+                "Bugün",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = 40.sp,
+                    letterSpacing = (-1.5).sp
+                )
+            )
+            Text(
+                "Hafta 1",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+            )
         }
-        // Bildirim İkonu
-        Box(
-            modifier = Modifier.size(45.dp).clip(CircleShape).background(Color(0xFFE31E24).copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
+        
+        Row(
+            modifier = Modifier.padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Rounded.Notifications, contentDescription = null, tint = Color(0xFFE31E24))
-        }
-    }
-}
-
-@Composable
-fun MainCalorieCard(summary: DailySummary) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(30.dp, RoundedCornerShape(32.dp), ambientColor = Color(0xFFE31E24).copy(alpha = 0.4f)),
-        shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Canvas(modifier = Modifier.size(180.dp)) {
-                    drawCircle(Color(0xFFF5F5F5), style = Stroke(width = 16.dp.toPx()))
-                }
-                val progress = (summary.totalCalories.toFloat() / summary.goalCalories).coerceIn(0f, 1f)
-                Canvas(modifier = Modifier.size(180.dp)) {
-                    drawArc(
-                        brush = Brush.sweepGradient(listOf(Color(0xFFFF5F6D), Color(0xFFE31E24))),
-                        startAngle = -90f,
-                        sweepAngle = 360 * progress,
-                        useCenter = false,
-                        style = Stroke(width = 16.dp.toPx(), cap = StrokeCap.Round)
-                    )
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${summary.totalCalories}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
-                    Text("kcal", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
-                }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                InfoColumn("Hedef", "${summary.goalCalories}")
-                VerticalDivider(modifier = Modifier.height(30.dp).width(1.dp), color = Color(0xFFF0F0F0))
-                InfoColumn("Kalan", "${summary.caloriesLeft}", Color(0xFFE31E24))
-            }
-        }
-    }
-}
-
-@Composable
-fun InfoColumn(label: String, value: String, color: Color = Color.Unspecified) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
-    }
-}
-
-@Composable
-fun MacroGrid(summary: DailySummary) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        MacroCard("Protein", summary.proteinProgress, Color(0xFFE31E24), Modifier.weight(1f))
-        MacroCard("Karbon.", summary.carbsProgress, Color(0xFF4CAF50), Modifier.weight(1f))
-        MacroCard("Yağ", summary.fatProgress, Color(0xFFFFC107), Modifier.weight(1f))
-    }
-}
-
-@Composable
-fun MacroCard(name: String, progress: Float, color: Color, modifier: Modifier) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF8F8F8))
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-            Spacer(modifier = Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { progress.coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-                color = color,
-                trackColor = color.copy(alpha = 0.1f)
+            HeaderStatusIcon(Icons.Rounded.Star, "2000", Color(0xFF2196F3))
+            Spacer(modifier = Modifier.width(16.dp))
+            HeaderStatusIcon(Icons.Rounded.Whatshot, "135", Color(0xFFFF5722))
+            Spacer(modifier = Modifier.width(16.dp))
+            Icon(
+                Icons.Rounded.DateRange, 
+                contentDescription = null, 
+                modifier = Modifier.size(24.dp),
+                tint = Color.Black
             )
         }
     }
 }
 
 @Composable
-fun MealGridSection(onNavigate: (String) -> Unit = {}) {
-    val meals: List<Triple<String, ImageVector, MealType>> = listOf(
-        Triple("Kahvaltı", Icons.Rounded.WbSunny, MealType.BREAKFAST),
-        Triple("Öğle", Icons.Rounded.LunchDining, MealType.LUNCH),
-        Triple("Akşam", Icons.Rounded.DinnerDining, MealType.DINNER),
-        Triple("Atıştırma", Icons.Rounded.LocalPizza, MealType.SNACK)
-    )
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier.height(260.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+fun HeaderStatusIcon(icon: ImageVector, text: String, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+    }
+}
+
+@Composable
+fun EnhancedSummaryCard(summary: DailySummary) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
-        items(meals) { (label, icon, type) ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(110.dp)
-                    .clickable { onNavigate("add_food?mealType=${type.name}") },
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                    Icon(icon, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.align(Alignment.TopStart))
-                    Text(label, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomStart))
+                SummaryValueColumn("Alınan", "${summary.totalCalories}")
+                
+                Box(contentAlignment = Alignment.Center) {
+                    Canvas(modifier = Modifier.size(150.dp)) {
+                        drawCircle(Color(0xFFF5F5F5), style = Stroke(width = 14.dp.toPx()))
+                    }
+                    val progress = (summary.totalCalories.toFloat() / summary.goalCalories).coerceIn(0f, 1f)
+                    Canvas(modifier = Modifier.size(150.dp)) {
+                        drawArc(
+                            color = Color(0xFFE31E24),
+                            startAngle = -90f,
+                            sweepAngle = 360 * progress,
+                            useCenter = false,
+                            style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "${summary.caloriesLeft}", 
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 48.sp, // Daha büyük merkez değeri
+                                letterSpacing = (-1).sp
+                            )
+                        )
+                        Text(
+                            "Kalan", 
+                            color = Color.Gray, 
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        )
+                    }
                 }
+
+                SummaryValueColumn("Yakılan", "142")
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                MacroHorizontalBar("Karb", summary.carbsConsumed.toInt(), summary.carbsGoal.toInt(), Color(0xFF00C49F), Modifier.weight(1f))
+                Spacer(modifier = Modifier.width(12.dp))
+                MacroHorizontalBar("Protein", summary.proteinConsumed.toInt(), summary.proteinGoal.toInt(), Color(0xFFE31E24), Modifier.weight(1f))
+                Spacer(modifier = Modifier.width(12.dp))
+                MacroHorizontalBar("Yağ", summary.fatConsumed.toInt(), summary.fatGoal.toInt(), Color(0xFFFFBB28), Modifier.weight(1f))
             }
         }
     }
 }
 
 @Composable
-fun WaterTrackerCard(
-    currentValue: Int,
-    goalValue: Int,
-    onAddWater: (Int) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(10.dp, RoundedCornerShape(24.dp), ambientColor = Color.Blue.copy(alpha = 0.1f)),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(45.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFF2196F3).copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Rounded.WaterDrop, contentDescription = null, tint = Color(0xFF2196F3))
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text("Su Takibi", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-                    Text("$currentValue / $goalValue ml", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
-                }
-            }
-            
-            Button(
-                onClick = { onAddWater(250) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3).copy(alpha = 0.1f)),
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Icon(Icons.Rounded.Add, contentDescription = null, tint = Color(0xFF2196F3), modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("250ml", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            }
-        }
+fun SummaryValueColumn(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            value, 
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Black, 
+                fontSize = 26.sp
+            )
+        )
+        Text(
+            label, 
+            color = Color.Gray, 
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 14.sp
+            )
+        )
     }
 }
 
 @Composable
-fun StepTrackerCard(
-    currentSteps: Int,
-    stepGoal: Int
+fun MacroHorizontalBar(label: String, current: Int, goal: Int, color: Color, modifier: Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            label, 
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 15.sp
+            ), 
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        val progress = if (goal > 0) (current.toFloat() / goal) else 0f
+        LinearProgressIndicator(
+            progress = { progress.coerceIn(0f, 1f) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(12.dp) // Daha kalın ve kullanışlı bar
+                .clip(CircleShape),
+            color = color,
+            trackColor = color.copy(alpha = 0.15f)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            "${current} / ${goal} g", 
+            fontSize = 17.sp, 
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.5.sp
+        )
+    }
+}
+
+data class MealItemData(
+    val label: String,
+    val icon: ImageVector,
+    val type: MealType,
+    val description: String,
+    val currentCal: Int,
+    val goalCal: Int
+)
+
+@Composable
+fun MealRow(
+    label: String,
+    icon: ImageVector,
+    currentCal: Int,
+    goalCal: Int,
+    description: String,
+    onAddClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(10.dp, RoundedCornerShape(24.dp), ambientColor = Color(0xFFFF9800).copy(alpha = 0.1f)),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(45.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(Color(0xFFFF9800).copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Rounded.DirectionsRun, contentDescription = null, tint = Color(0xFFFF9800))
-            }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Adım Sayar", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-                    Text("$currentSteps / $stepGoal", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
+                val progress = if (goalCal > 0) (currentCal.toFloat() / goalCal) else 0f
+                Canvas(modifier = Modifier.size(56.dp)) {
+                    drawCircle(Color(0xFFF5F5F5), style = Stroke(width = 5.dp.toPx()))
+                    drawArc(
+                        color = Color(0xFF00C49F),
+                        startAngle = -90f,
+                        sweepAngle = 360 * progress.coerceIn(0f, 1f),
+                        useCenter = false,
+                        style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
+                    )
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                val progress = (currentSteps.toFloat() / stepGoal).coerceIn(0f, 1f)
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
-                    color = Color(0xFFFF9800),
-                    trackColor = Color(0xFFFF9800).copy(alpha = 0.1f)
-                )
+                Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(26.dp))
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
-            Box(
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    label, 
+                    fontWeight = FontWeight.Black, 
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp)
+                )
+                Text(
+                    "$currentCal / $goalCal Kal", 
+                    color = Color.Gray, 
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                )
+                if (description.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        description,
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Henüz eklenmedi",
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
+                }
+            }
+
+            IconButton(
+                onClick = onAddClick,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFF9800).copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
+                    .background(Color.Black)
             ) {
-                Icon(Icons.Rounded.Whatshot, contentDescription = null, tint = Color(0xFFFF9800), modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
             }
         }
     }
 }
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PreviewV2() {
+fun DashboardPreviewV3() {
     KaloritakipTheme {
-        // 1. Mock veri seti (DailySummary)
-        val mockSummary = DailySummary(
-            totalCalories = 1650,
-            goalCalories = 2200,
-            proteinConsumed = 110.0,
-            proteinGoal = 150.0,
-            carbsConsumed = 180.0,
-            carbsGoal = 250.0,
-            fatConsumed = 45.0,
-            fatGoal = 70.0
-        )
-
-        // 2. UI State'i mock veriyle oluştur
-        val mockUiState = DashboardUiState(summary = mockSummary)
-
-        // 3. Stateless content'e tüm parametreleri gönder
-        DashboardContentV2(
-            uiState = mockUiState
+        DashboardContentV3(
+            uiState = DashboardUiState(
+                summary = DailySummary(totalCalories = 1020, goalCalories = 1888)
+            )
         )
     }
 }

@@ -49,10 +49,15 @@ fun TargetCalculatorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hedef Hesaplayıcı", fontWeight = FontWeight.Bold) },
+                title = { 
+                    Text(
+                        "Hedef Hesaplayıcı", 
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = null)
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = null, tint = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFBFBFD))
@@ -70,20 +75,30 @@ fun TargetCalculatorScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // 1. GENDER SELECTION
-            Text("Cinsiyet", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Cinsiyet", 
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                color = Color.Gray
+            )
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 listOf("Erkek", "Kadın").forEach { item ->
                     val isSelected = gender == item
                     Button(
                         onClick = { gender = item },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) Color(0xFFE31E24) else Color.White
                         ),
-                        border = if (!isSelected) BorderStroke(1.dp, Color(0xFFEEEEEE)) else null
+                        border = if (!isSelected) BorderStroke(1.dp, Color(0xFFF0F0F0)) else null
                     ) {
-                        Text(item, color = if (isSelected) Color.White else Color.Black)
+                        Text(
+                            item, 
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                            ),
+                            color = if (isSelected) Color.White else Color.Black
+                        )
                     }
                 }
             }
@@ -97,11 +112,15 @@ fun TargetCalculatorScreen(
                 CalculatorInput("Boy", height, { height = it }, "cm", Modifier.weight(1f))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // 3. ACTIVITY LEVEL
-            Text("Aktivite Seviyesi", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Aktivite Seviyesi", 
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             ActivityPicker(activityLevel) { activityLevel = it }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -113,19 +132,35 @@ fun TargetCalculatorScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 border = BorderStroke(1.dp, Color(0xFFF0F0F0))
             ) {
-                Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("GÜNLÜK KALORİ İHTİYACI", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text("$tdee", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.ExtraBold, color = Color(0xFFE31E24))
-                    Text("kcal / gün", color = Color.Gray)
+                Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "GÜNLÜK KALORİ İHTİYACI", 
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                        color = Color.Gray
+                    )
+                    Text(
+                        "$tdee", 
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            fontSize = 64.sp,
+                            letterSpacing = (-2).sp
+                        ), 
+                        color = Color(0xFFE31E24)
+                    )
+                    Text(
+                        "kcal / gün", 
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Gray
+                    )
                     
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
                     HorizontalDivider(color = Color(0xFFF8F8F8))
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                        ResultSummary("Kilo Ver", (tdee * 0.8).roundToInt().toString(), Color(0xFF4CAF50))
+                        ResultSummary("Kilo Ver", (tdee * 0.8).roundToInt().toString(), Color(0xFF00C49F))
                         ResultSummary("Koru", tdee.toString(), Color(0xFFE31E24))
-                        ResultSummary("Kilo Al", (tdee * 1.2).roundToInt().toString(), Color(0xFFFFC107))
+                        ResultSummary("Kilo Al", (tdee * 1.2).roundToInt().toString(), Color(0xFFFFBB28))
                     }
                 }
             }
@@ -134,11 +169,14 @@ fun TargetCalculatorScreen(
 
             Button(
                 onClick = onNavigateBack,
-                modifier = Modifier.fillMaxWidth().height(60.dp),
-                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE31E24))
             ) {
-                Text("Hedefimi Kaydet", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(
+                    "Hedefimi Kaydet", 
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)
+                )
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -150,16 +188,21 @@ fun TargetCalculatorScreen(
 @Composable
 fun CalculatorInput(label: String, value: String, onValueChange: (String) -> Unit, suffix: String, modifier: Modifier) {
     Column(modifier = modifier) {
-        Text(label, fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
+        Text(
+            label, 
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+            color = Color.Gray
+        )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(24.dp),
             singleLine = true,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Black),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFFE31E24),
-                unfocusedBorderColor = Color(0xFFEEEEEE),
+                unfocusedBorderColor = Color(0xFFF0F0F0),
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White
             )
@@ -170,25 +213,35 @@ fun CalculatorInput(label: String, value: String, onValueChange: (String) -> Uni
 @Composable
 fun ActivityPicker(current: Float, onSelect: (Float) -> Unit) {
     val levels = listOf(
-        Triple("Az", "Hareketsiz yaşam", 1.2f),
-        Triple("Orta", "Haftada 2-3 gün", 1.375f),
-        Triple("Yüksek", "Haftada 4rd gün+", 1.55f)
+        Triple("Az", "Hareketsiz", 1.2f),
+        Triple("Orta", "Haftada 2-3", 1.375f),
+        Triple("Yüksek", "Haftada 4+", 1.55f)
     )
     
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         levels.forEach { (label, sub, value) ->
             val isSelected = current == value
             Card(
                 modifier = Modifier.weight(1f).clickable { onSelect(value) },
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = if (isSelected) Color(0xFFE31E24).copy(alpha = 0.05f) else Color.White
                 ),
-                border = BorderStroke(1.dp, if (isSelected) Color(0xFFE31E24) else Color(0xFFEEEEEE))
+                border = BorderStroke(1.dp, if (isSelected) Color(0xFFE31E24) else Color(0xFFF0F0F0))
             ) {
-                Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(label, fontWeight = FontWeight.Bold, color = if (isSelected) Color(0xFFE31E24) else Color.Black)
-                    Text(sub, fontSize = 8.sp, color = Color.Gray)
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        label, 
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                        ),
+                        color = if (isSelected) Color(0xFFE31E24) else Color.Black
+                    )
+                    Text(
+                        sub, 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Gray
+                    )
                 }
             }
         }
@@ -198,8 +251,20 @@ fun ActivityPicker(current: Float, onSelect: (Float) -> Unit) {
 @Composable
 fun ResultSummary(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-        Text(value, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = color)
-        Text("kcal", fontSize = 8.sp, color = Color.Gray)
+        Text(
+            label, 
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black),
+            color = Color.Gray
+        )
+        Text(
+            value, 
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+            color = color
+        )
+        Text(
+            "kcal", 
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = Color.Gray
+        )
     }
 }

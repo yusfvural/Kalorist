@@ -21,34 +21,60 @@ fun AnalysisScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFBFBFD))
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // --- HEADER ---
+        Spacer(modifier = Modifier.height(40.dp))
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                "Analiz",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = 40.sp,
+                    letterSpacing = (-1.5).sp
+                )
+            )
+            Text(
+                "Aktivite ve veri takibi",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
         Icon(
             imageVector = Icons.Rounded.Analytics,
             contentDescription = null,
-            modifier = Modifier.size(100.dp),
-            tint = Color(0xFFE31E24).copy(alpha = 0.5f)
+            modifier = Modifier.size(120.dp),
+            tint = Color(0xFFE31E24).copy(alpha = 0.15f)
         )
+        
         Spacer(modifier = Modifier.height(24.dp))
+        
         Text(
-            "ANALİZ & EGZERSİZ",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.ExtraBold,
+            "Çok Yakında",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Black,
+                fontSize = 28.sp,
+                letterSpacing = (-0.5).sp
+            ),
             color = Color.Black
         )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
         Text(
-            "Çok Yakında...",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            "Burada günlük aktivitelerini ve detaylı grafiklerini görebileceksin.",
+            "Burada günlük aktivitelerini ve detaylı grafiklerini görebileceksin. Hazırlandığında sana haber vereceğiz!",
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            color = Color.Gray,
-            fontSize = 14.sp
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = Color.Gray,
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.Medium
+            )
         )
+
+        Spacer(modifier = Modifier.weight(1.5f))
     }
 }

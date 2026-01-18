@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Whatshot
 import androidx.compose.material3.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,60 +22,80 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun StatsScreen() {
-    val scrollState = rememberScrollState()
-
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFBFBFD)) // Dashboard ile aynı arka plan
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp)
+            .background(Color(0xFFFBFBFD)),
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 40.dp, bottom = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text("HAFTALIK ÖZET", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text("Son 7 gündeki performansın", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+        // --- HEADER ---
+        item {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    "İstatistikler",
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Black,
+                        fontSize = 40.sp,
+                        letterSpacing = (-1.5).sp
+                    )
+                )
+                Text(
+                    "Son 7 gündeki performansın",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                )
+            }
+        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
-        // 1. HAFTALIK KALORİ GRAFİĞİ KARTI
-        WeeklyChartCard()
+        // --- WEEKLY CHART ---
+        item {
+            SectionTitle("Haftalık Özet", onActionClick = { /* Details */ })
+            WeeklyChartCard()
+        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
-        // 2. HAFTALIK MAKRO ORTALAMALARI
-        Text("HAFTALIK MAKRO DENGESİ", 
-            style = MaterialTheme.typography.titleSmall.copy(letterSpacing = 1.2.sp, color = Color.Gray, fontWeight = FontWeight.ExtraBold))
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        MacroAveragesCard()
+        // --- MACRO BALANCES ---
+        item {
+            SectionTitle("Makro Dengesi", actionText = "Detaylar", onActionClick = { /* More */ })
+            MacroAveragesCard()
+        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
-        // 3. BAŞARI ÖZETİ (Insights)
-        InsightsCard()
-        
-        Spacer(modifier = Modifier.height(120.dp)) // Dock menü için boşluk
+        // --- INSIGHTS ---
+        item {
+            InsightsCard()
+        }
     }
 }
 
 @Composable
 fun WeeklyChartCard() {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(20.dp, RoundedCornerShape(32.dp), ambientColor = Color.Black.copy(alpha = 0.1f)),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Kalori Alımı", fontWeight = FontWeight.Bold)
-                Text("Ort: 1950 kcal", color = Color(0xFFE31E24), fontWeight = FontWeight.SemiBold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "Kalori Alımı", 
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, fontSize = 20.sp)
+                )
+                Text(
+                    "Ort: 1950 kcal", 
+                    color = Color(0xFFE31E24), 
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraBold)
+                )
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // Basit ve Modern Çubuk Grafik
             Row(
@@ -93,8 +115,13 @@ fun WeeklyChartCard() {
                                 .clip(CircleShape)
                                 .background(if (height >= 0.9f) Color(0xFFE31E24) else Color(0xFFF0F0F0))
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(days[index], fontSize = 10.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            days[index], 
+                            fontSize = 11.sp, 
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray
+                        )
                     }
                 }
             }
@@ -106,16 +133,16 @@ fun WeeklyChartCard() {
 fun MacroAveragesCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(24.dp)) {
             MacroStatRow("Protein", "%35", Color(0xFFE31E24))
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF8F8F8))
-            MacroStatRow("Karbonhidrat", "%45", Color(0xFF4CAF50))
+            MacroStatRow("Karbonhidrat", "%45", Color(0xFF00C49F))
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF8F8F8))
-            MacroStatRow("Yağ", "%20", Color(0xFFFFC107))
+            MacroStatRow("Yağ", "%20", Color(0xFFFFBB28))
         }
     }
 }
@@ -123,10 +150,17 @@ fun MacroAveragesCard() {
 @Composable
 fun MacroStatRow(label: String, percentage: String, color: Color) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-        Text(percentage, fontWeight = FontWeight.Bold)
+        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(color))
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            label, 
+            modifier = Modifier.weight(1f), 
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+        )
+        Text(
+            percentage, 
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black)
+        )
     }
 }
 
@@ -135,16 +169,52 @@ fun InsightsCard() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(32.dp))
             .background(Color(0xFFE31E24).copy(alpha = 0.05f))
-            .padding(20.dp),
+            .border(1.dp, Color(0xFFE31E24).copy(alpha = 0.1f), RoundedCornerShape(32.dp))
+            .padding(24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Rounded.Whatshot, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.size(32.dp))
+        Icon(Icons.Rounded.Whatshot, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.size(36.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text("Harika Gidiyorsun!", fontWeight = FontWeight.Bold, color = Color(0xFFE31E24))
-            Text("Son 3 gündür kalori hedefini hiç aşmadın.", fontSize = 12.sp, color = Color.Black.copy(alpha = 0.7f))
+            Text(
+                "Harika Gidiyorsun!", 
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, fontSize = 18.sp),
+                color = Color(0xFFE31E24)
+            )
+            Text(
+                "Son 3 gündür kalori hedefini hiç aşmadın.", 
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = Color.Black.copy(alpha = 0.7f)
+            )
         }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String, actionText: String = "Detaylar", onActionClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Black,
+                fontSize = 24.sp,
+                letterSpacing = (-0.5).sp
+            )
+        )
+        Text(
+            actionText,
+            color = Color(0xFFE31E24),
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            modifier = Modifier.padding(bottom = 4.dp).clickable { onActionClick() }
+        )
     }
 }

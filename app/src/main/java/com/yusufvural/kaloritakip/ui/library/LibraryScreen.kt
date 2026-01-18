@@ -34,14 +34,28 @@ fun LibraryScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFBFBFD))
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 24.dp)
     ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // --- HEADER ---
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                "Kütüphane",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = 40.sp,
+                    letterSpacing = (-1.5).sp
+                )
+            )
+            Text(
+                "Besin değerlerini hızlıca öğren",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
-
-        Text("BESİN KÜTÜPHANESİ", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text("Besin değerlerini hızlıca öğren", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
-
-        Spacer(modifier = Modifier.height(20.dp))
 
         // 1. MODERN ARAMA ÇUBUĞU
         OutlinedTextField(
@@ -49,14 +63,14 @@ fun LibraryScreen(
             onValueChange = { viewModel.onSearchQueryChanged(it) },
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp)),
-            placeholder = { Text("Besin ara...", color = Color.Gray) },
+                .clip(RoundedCornerShape(24.dp)),
+            placeholder = { Text("Besin veya marka ara...", color = Color.Gray) },
             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = Color(0xFFE31E24)) },
             singleLine = true,
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFFE31E24),
-                unfocusedBorderColor = Color(0xFFEEEEEE),
+                unfocusedBorderColor = Color(0xFFF0F0F0),
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White
             )
@@ -73,9 +87,20 @@ fun LibraryScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Rounded.Search, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Binlerce besin arasından ara...", color = Color.Gray)
+                        Icon(
+                            Icons.Rounded.Fastfood, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(80.dp), 
+                            tint = Color(0xFFE31E24).copy(alpha = 0.05f)
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            "Binlerce besin seni bekliyor", 
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = Color.Gray,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
                     }
                 }
                 is LibraryUiState.Loading -> {
@@ -100,7 +125,7 @@ fun LibraryScreen(
                     Text(
                         "Sonuç bulunamadı.",
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color.Gray
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Color.Gray)
                     )
                 }
                 is LibraryUiState.Error -> {
@@ -108,7 +133,7 @@ fun LibraryScreen(
                         state.message,
                         modifier = Modifier.align(Alignment.Center),
                         color = Color(0xFFE31E24),
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Black)
                     )
                 }
             }
@@ -122,32 +147,45 @@ fun LibraryFoodCard(food: SearchResult, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(24.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(food.label, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                    Text("100g için değerler", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        food.label, 
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)
+                    )
+                    Text(
+                        "100g için değerler", 
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Gray
+                    )
                 }
-                Text("${food.calories} kcal", fontWeight = FontWeight.ExtraBold, color = Color(0xFFE31E24), fontSize = 18.sp)
+                Text(
+                    "${food.calories} kcal", 
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black, 
+                        color = Color(0xFFE31E24)
+                    )
+                )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 MacroMiniInfo("Protein", "${food.protein.roundToInt()}g", Color(0xFFE31E24))
-                MacroMiniInfo("Karbon.", "${food.carbs.roundToInt()}g", Color(0xFF4CAF50))
-                MacroMiniInfo("Yağ", "${food.fat.roundToInt()}g", Color(0xFFFFC107))
+                MacroMiniInfo("Karbon.", "${food.carbs.roundToInt()}g", Color(0xFF00C49F))
+                MacroMiniInfo("Yağ", "${food.fat.roundToInt()}g", Color(0xFFFFBB28))
             }
         }
     }
@@ -156,7 +194,15 @@ fun LibraryFoodCard(food: SearchResult, onClick: () -> Unit) {
 @Composable
 fun MacroMiniInfo(label: String, value: String, color: Color) {
     Column {
-        Text(label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
+        Text(
+            label, 
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+            color = Color.Gray
+        )
+        Text(
+            value, 
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Black),
+            color = color
+        )
     }
 }

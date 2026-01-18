@@ -38,10 +38,15 @@ fun FoodDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Besin Detayı", fontWeight = FontWeight.Bold) },
+                title = { 
+                    Text(
+                        "Besin Detayı", 
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = null)
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = null, tint = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFBFBFD))
@@ -63,16 +68,28 @@ fun FoodDetailScreen(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE31E24).copy(alpha = 0.1f)),
+                    .background(Color(0xFFE31E24).copy(alpha = 0.05f))
+                    .border(1.dp, Color(0xFFE31E24).copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Rounded.Fastfood, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.size(60.dp))
+                Icon(Icons.Rounded.Fastfood, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.size(50.dp))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(foodName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
-            Text("100g için $baseCalories kcal", color = Color.Gray)
+            Text(
+                foodName, 
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = 32.sp,
+                    letterSpacing = (-1).sp
+                )
+            )
+            Text(
+                "100g için $baseCalories kcal", 
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = Color.Gray
+            )
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -84,21 +101,44 @@ fun FoodDetailScreen(
                 border = BorderStroke(1.dp, Color(0xFFF0F0F0))
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier.padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("TOPLAM KALORİ", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text("$totalCalories", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.ExtraBold, color = Color(0xFFE31E24))
-                    Text("kcal", color = Color.Gray)
+                    Text(
+                        "TOPLAM KALORİ", 
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                        color = Color.Gray
+                    )
+                    Text(
+                        "$totalCalories", 
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            fontSize = 64.sp,
+                            letterSpacing = (-2).sp
+                        ), 
+                        color = Color(0xFFE31E24)
+                    )
+                    Text(
+                        "kcal", 
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Gray
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(40.dp))
 
             // 3. PORSİYON SEÇİCİ
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("MİKTAR (gram)", fontWeight = FontWeight.Bold)
-                Text("${portion.roundToInt()} g", color = Color(0xFFE31E24), fontWeight = FontWeight.ExtraBold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+                Text(
+                    "MİKTAR (gram)", 
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black)
+                )
+                Text(
+                    "${portion.roundToInt()} g", 
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
+                    color = Color(0xFFE31E24)
+                )
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -122,12 +162,14 @@ fun FoodDetailScreen(
                 onClick = { onAddComplete(foodName, totalCalories, totalProtein, totalFat, totalCarbs) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp)
-                    .padding(bottom = 8.dp),
-                shape = RoundedCornerShape(20.dp),
+                    .height(64.dp),
+                shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE31E24))
             ) {
-                Text("Günüme Ekle", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(
+                    "Günüme Ekle", 
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)
+                )
             }
             
             Spacer(modifier = Modifier.height(24.dp))
