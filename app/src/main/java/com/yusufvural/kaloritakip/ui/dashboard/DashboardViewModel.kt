@@ -26,21 +26,24 @@ class DashboardViewModel @Inject constructor(
 
     init {
         observeFoodEntries()
+        calculateStreak()
     }
 
     private fun observeFoodEntries() {
         viewModelScope.launch {
             repository.getAllEntries().collect { entries ->
+                val totalCalories = entries.sumOf { it.calories }
+                val totalProtein = entries.sumOf { it.protein }
+                val totalCarbs = entries.sumOf { it.carbs }
+                val totalFat = entries.sumOf { it.fat }
+                
                 _uiState.update { currentState ->
-                    val totalCalories = entries.sumOf { it.calories }
-                    val totalProtein = entries.sumOf { it.protein }
-                    val totalCarbs = entries.sumOf { it.carbs }
-                    val totalFat = entries.sumOf { it.fat }
-                    
                     currentState.copy(
                         entries = entries,
-                        summary = currentState.summary.copy(
+                        summary = DailySummary(
                             totalCalories = totalCalories,
+                            goalCalories = 2200,
+                            burnedCalories = 135, // Kullanıcının bahsettiği sabit yakılan kalori
                             proteinConsumed = totalProtein,
                             carbsConsumed = totalCarbs,
                             fatConsumed = totalFat
@@ -49,6 +52,27 @@ class DashboardViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun calculateStreak() {
+        // Mevcut tarih bilgilerini hesapla
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = when (calendar.get(Calendar.DAY_OF_WEEK)) {
+            Calendar.MONDAY -> "Pazartesi"
+            Calendar.TUESDAY -> "Salı"
+            Calendar.WEDNESDAY -> "Çarşamba"
+            Calendar.THURSDAY -> "Perşembe"
+            Calendar.FRIDAY -> "Cuma"
+            Calendar.SATURDAY -> "Cumartesi"
+            Calendar.SUNDAY -> "Pazar"
+            else -> "Bugün"
+        }
+        
+        _uiState.update { it.copy(
+            dayName = dayOfWeek,
+            streakCount = 5, // Örnek değer, veritabanından takip edilecek
+            points = 2000    // Örnek değer
+        ) }
     }
 
     fun addFood(name: String, calories: Int, protein: Double, carbs: Double, fat: Double, mealType: MealType) {
@@ -78,5 +102,9 @@ data class DashboardUiState(
     val waterGoal: Int = 2000,
     val steps: Int = 0,
     val stepGoal: Int = 10000,
+    val streakCount: Int = 0,
+    val points: Int = 0,
+    val dayName: String = "Bugün",
+    val weekCount: Int = 1,
     val isLoading: Boolean = false
 )

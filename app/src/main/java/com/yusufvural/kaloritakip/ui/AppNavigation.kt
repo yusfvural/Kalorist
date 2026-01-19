@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.yusufvural.kaloritakip.ui.dashboard.DashboardScreen
 import com.yusufvural.kaloritakip.ui.stats.StatsScreen
+import com.yusufvural.kaloritakip.ui.stats.StatsViewModel
 import com.yusufvural.kaloritakip.ui.analysis.AnalysisScreen
 import com.yusufvural.kaloritakip.ui.profile.ProfileScreen
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,7 +30,10 @@ fun AppNavHost(navController: NavHostController) {
         composable("dashboard") { 
             DashboardScreen(onNavigate = { route -> navController.navigate(route) }) 
         }
-        composable("stats") { StatsScreen() }
+        composable("stats") { 
+            val statsViewModel: StatsViewModel = hiltViewModel()
+            StatsScreen(viewModel = statsViewModel) 
+        }
         composable("analysis") { AnalysisScreen() }
         composable(
             route = "add_food?mealType={mealType}",

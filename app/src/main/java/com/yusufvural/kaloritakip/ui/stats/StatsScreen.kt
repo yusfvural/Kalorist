@@ -15,114 +15,195 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Calendar
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @Composable
-fun StatsScreen() {
+fun StatsScreen(
+    viewModel: StatsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFBFBFD)),
-        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 40.dp, bottom = 120.dp),
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // --- HEADER ---
-        item {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "İstatistikler",
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        fontWeight = FontWeight.Black,
-                        fontSize = 40.sp,
-                        letterSpacing = (-1.5).sp
-                    )
-                )
-                Text(
-                    "Son 7 gündeki performansın",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
-                )
-            }
-        }
-
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
         // --- WEEKLY CHART ---
         item {
-            SectionTitle("Haftalık Özet", onActionClick = { /* Details */ })
-            WeeklyChartCard()
+            ChartHeader(uiState)
+            WeeklyChartCard(uiState)
         }
 
-        item { Spacer(modifier = Modifier.height(12.dp)) }
+        item { Spacer(modifier = Modifier.height(24.dp)) }
 
         // --- MACRO BALANCES ---
         item {
-            SectionTitle("Makro Dengesi", actionText = "Detaylar", onActionClick = { /* More */ })
-            MacroAveragesCard()
+            SectionTitle("Makro Dengesi")
+            MacroAveragesCard(uiState)
         }
 
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
-        // --- INSIGHTS ---
+        // --- STREAK CARD ---
         item {
-            InsightsCard()
+            StreakCard(uiState)
         }
     }
 }
 
 @Composable
-fun WeeklyChartCard() {
+fun ChartHeader(uiState: StatsUiState) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        Column {
+            Text(
+                "Kalori Alımı", 
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Black, 
+                    fontSize = 30.sp,
+                    letterSpacing = (-1).sp
+                )
+            )
+            Text(
+                "Son 7 Günlük Enerji Akışın",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            )
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                "${uiState.averageCalories}", 
+                style = MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFE31E24),
+                    fontSize = 38.sp
+                )
+            )
+            Text(
+                "Ortalama kcal", 
+                color = Color.Gray, 
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            )
+        }
+    }
+}
+
+@Composable
+fun WeeklyChartCard(uiState: StatsUiState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Kalori Alımı", 
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, fontSize = 20.sp)
-                )
-                Text(
-                    "Ort: 1950 kcal", 
-                    color = Color(0xFFE31E24), 
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraBold)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Basit ve Modern Çubuk Grafik
-            Row(
-                modifier = Modifier.fillMaxWidth().height(150.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.Bottom
+        Column(modifier = Modifier.padding(vertical = 28.dp, horizontal = 12.dp)) {
+            // Borsa Tarzı Çizgi Grafik (Line Chart)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(horizontal = 8.dp)
             ) {
-                val data = listOf(0.6f, 0.8f, 0.5f, 0.9f, 0.7f, 1f, 0.4f)
-                val days = listOf("Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz")
-                
-                data.forEachIndexed { index, height ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .width(14.dp)
-                                .fillMaxHeight(height)
-                                .clip(CircleShape)
-                                .background(if (height >= 0.9f) Color(0xFFE31E24) else Color(0xFFF0F0F0))
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val points = uiState.weeklyData
+                    if (points.isEmpty()) return@Canvas
+
+                    val widthBetweenPoints = size.width / (points.size - 1)
+                    val maxH = size.height
+
+                    // 1. Alan Gradyanı (Gölge Etkisi)
+                    val fillPath = Path().apply {
+                        moveTo(0f, maxH)
+                        points.forEachIndexed { index, ratio ->
+                            val x = index * widthBetweenPoints
+                            val y = maxH * (1f - ratio.coerceIn(0.05f, 1f))
+                            lineTo(x, y)
+                        }
+                        lineTo(size.width, maxH)
+                        close()
+                    }
+                    drawPath(
+                        path = fillPath,
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color(0xFFE31E24).copy(alpha = 0.2f), Color.Transparent)
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            days[index], 
-                            fontSize = 11.sp, 
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Gray
+                    )
+
+                    // 2. Ana Çizgi (Borsa Çizgisi)
+                    val strokePath = Path().apply {
+                        points.forEachIndexed { index, ratio ->
+                            val x = index * widthBetweenPoints
+                            val y = maxH * (1f - ratio.coerceIn(0.05f, 1f))
+                            if (index == 0) moveTo(x, y) else lineTo(x, y)
+                        }
+                    }
+                    drawPath(
+                        path = strokePath,
+                        color = Color(0xFFE31E24),
+                        style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    )
+
+                    // 3. Noktalar ve Değerler
+                    points.forEachIndexed { index, ratio ->
+                        val x = index * widthBetweenPoints
+                        val y = maxH * (1f - ratio.coerceIn(0.05f, 1f))
+                        
+                        drawCircle(
+                            color = Color.White,
+                            radius = 6.dp.toPx(),
+                            center = Offset(x, y)
+                        )
+                        drawCircle(
+                            color = Color(0xFFE31E24),
+                            radius = 3.dp.toPx(),
+                            center = Offset(x, y)
                         )
                     }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Gün İsimleri
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                uiState.weeklyLabels.forEach { label ->
+                    val calendar = Calendar.getInstance()
+                    val daysLabels = listOf("Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt")
+                    val currentDayLabel = daysLabels[calendar.get(Calendar.DAY_OF_WEEK) - 1]
+                    val isToday = label == currentDayLabel
+                    
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = if (isToday) FontWeight.Black else FontWeight.Bold,
+                            fontSize = if (isToday) 18.sp else 16.sp,
+                            color = if (isToday) Color.Black else Color.Gray.copy(alpha = 0.7f)
+                        )
+                    )
                 }
             }
         }
@@ -130,7 +211,7 @@ fun WeeklyChartCard() {
 }
 
 @Composable
-fun MacroAveragesCard() {
+fun MacroAveragesCard(uiState: StatsUiState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
@@ -138,62 +219,116 @@ fun MacroAveragesCard() {
         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            MacroStatRow("Protein", "%35", Color(0xFFE31E24))
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF8F8F8))
-            MacroStatRow("Karbonhidrat", "%45", Color(0xFF00C49F))
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF8F8F8))
-            MacroStatRow("Yağ", "%20", Color(0xFFFFBB28))
+
+            // Görsel Dağılım Barı (Segmented Progress Bar)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(16.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFF5F5F5))
+            ) {
+                if (uiState.proteinPercentage > 0) {
+                    Box(modifier = Modifier.weight(uiState.proteinPercentage.toFloat().coerceAtLeast(1f)).fillMaxHeight().background(Color(0xFFE31E24)))
+                }
+                if (uiState.carbsPercentage > 0) {
+                    Box(modifier = Modifier.weight(uiState.carbsPercentage.toFloat().coerceAtLeast(1f)).fillMaxHeight().background(Color(0xFF00C49F)))
+                }
+                if (uiState.fatPercentage > 0) {
+                    Box(modifier = Modifier.weight(uiState.fatPercentage.toFloat().coerceAtLeast(1f)).fillMaxHeight().background(Color(0xFFFFBB28)))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                MacroStatRow("Protein", "%${uiState.proteinPercentage}", "${uiState.proteinGram}g", Color(0xFFE31E24))
+                MacroStatRow("Karbonhidrat", "%${uiState.carbsPercentage}", "${uiState.carbsGram}g", Color(0xFF00C49F))
+                MacroStatRow("Yağ", "%${uiState.fatPercentage}", "${uiState.fatGram}g", Color(0xFFFFBB28))
+            }
         }
     }
 }
 
 @Composable
-fun MacroStatRow(label: String, percentage: String, color: Color) {
+fun MacroStatRow(label: String, percentage: String, amount: String, color: Color) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(color))
-        Spacer(modifier = Modifier.width(16.dp))
+        Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             label, 
             modifier = Modifier.weight(1f), 
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontSize = 19.sp), // 17 -> 19
+            color = Color.Gray
+        )
+        Text(
+            amount,
+            modifier = Modifier.padding(end = 12.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontSize = 19.sp) // 17 -> 19
         )
         Text(
             percentage, 
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black)
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, fontSize = 21.sp), // 19 -> 21
+            color = Color.Black
         )
     }
 }
 
 @Composable
-fun InsightsCard() {
+fun StreakCard(uiState: StatsUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(32.dp))
-            .background(Color(0xFFE31E24).copy(alpha = 0.05f))
-            .border(1.dp, Color(0xFFE31E24).copy(alpha = 0.1f), RoundedCornerShape(32.dp))
-            .padding(24.dp),
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(Color(0xFFE31E24).copy(alpha = 0.1f), Color(0xFFFF9800).copy(alpha = 0.05f))
+                )
+            )
+            .border(1.dp, Color(0xFFE31E24).copy(alpha = 0.2f), RoundedCornerShape(32.dp))
+            .padding(28.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Rounded.Whatshot, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.size(36.dp))
-        Spacer(modifier = Modifier.width(16.dp))
+        // Ateş Efekti Alanı
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(64.dp)
+                .background(Color(0xFFE31E24).copy(alpha = 0.1f), CircleShape)
+        ) {
+            Icon(
+                Icons.Rounded.Whatshot, 
+                contentDescription = null, 
+                tint = Color(0xFFE31E24), 
+                modifier = Modifier.size(36.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(20.dp))
+        
         Column {
             Text(
-                "Harika Gidiyorsun!", 
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, fontSize = 18.sp),
-                color = Color(0xFFE31E24)
+                uiState.insightTitle, 
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Black, 
+                    fontSize = 24.sp,
+                    color = Color(0xFFE31E24)
+                )
             )
             Text(
-                "Son 3 gündür kalori hedefini hiç aşmadın.", 
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = Color.Black.copy(alpha = 0.7f)
+                uiState.insightMessage, 
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 18.sp,
+                    color = Color.Black.copy(alpha = 0.7f)
+                )
             )
         }
     }
 }
 
 @Composable
-fun SectionTitle(title: String, actionText: String = "Detaylar", onActionClick: () -> Unit) {
+fun SectionTitle(title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -205,16 +340,9 @@ fun SectionTitle(title: String, actionText: String = "Detaylar", onActionClick: 
             title,
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.Black,
-                fontSize = 24.sp,
+                fontSize = 26.sp, // 24 -> 26
                 letterSpacing = (-0.5).sp
             )
-        )
-        Text(
-            actionText,
-            color = Color(0xFFE31E24),
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(bottom = 4.dp).clickable { onActionClick() }
         )
     }
 }

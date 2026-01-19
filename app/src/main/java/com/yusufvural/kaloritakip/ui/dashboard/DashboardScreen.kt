@@ -61,12 +61,12 @@ fun DashboardContentV3(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFBFBFD)),
-        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 80.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp), // Öğeler arası boşluğu 12dp'ye indirdim
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 0.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Modular Items
-        dashboardHeader()
+        dashboardHeader(uiState)
         
         dashboardSummary(uiState.summary)
         
@@ -76,13 +76,13 @@ fun DashboardContentV3(
 
 // --- MODULAR SECTION EXTENSIONS ---
 
-fun LazyListScope.dashboardHeader() {
-    item { HeaderSectionV3() }
+fun LazyListScope.dashboardHeader(uiState: DashboardUiState) {
+    item { HeaderSectionV3(uiState) }
 }
 
 fun LazyListScope.dashboardSummary(summary: DailySummary) {
     item { 
-        SectionTitle("Özet", actionText = "Detaylar", onActionClick = { /* Details */ })
+        SectionTitle("Özet")
         EnhancedSummaryCard(summary = summary)
     }
 }
@@ -93,7 +93,7 @@ fun LazyListScope.dashboardNutrition(
     onNavigate: (String) -> Unit
 ) {
     item { 
-        SectionTitle("Beslenme", actionText = "Daha Fazla", onActionClick = { /* More */ })
+        SectionTitle("Beslenme")
     }
     
     items(meals) { meal ->
@@ -113,11 +113,11 @@ fun LazyListScope.dashboardNutrition(
 }
 
 @Composable
-fun SectionTitle(title: String, actionText: String = "Details", onActionClick: () -> Unit) {
+fun SectionTitle(title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp),
+            .padding(top = 16.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
     ) {
@@ -129,28 +129,21 @@ fun SectionTitle(title: String, actionText: String = "Details", onActionClick: (
                 letterSpacing = (-0.5).sp
             )
         )
-        Text(
-            actionText,
-            color = Color(0xFFE31E24), // Kırmızı tema
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(bottom = 4.dp).clickable { onActionClick() }
-        )
     }
 }
 
 @Composable
-fun HeaderSectionV3() {
+fun HeaderSectionV3(uiState: DashboardUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 40.dp), // Üstte daha fazla boşluk
+            .padding(top = 24.dp), // Üst boşluk İstatistikler sayfasıyla eşitlendi
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
             Text(
-                "Bugün",
+                uiState.dayName,
                 style = MaterialTheme.typography.displayMedium.copy(
                     fontWeight = FontWeight.Black,
                     fontSize = 40.sp,
@@ -158,7 +151,7 @@ fun HeaderSectionV3() {
                 )
             )
             Text(
-                "Hafta 1",
+                "Hafta ${uiState.weekCount}",
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
             )
@@ -168,9 +161,9 @@ fun HeaderSectionV3() {
             modifier = Modifier.padding(top = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            HeaderStatusIcon(Icons.Rounded.Star, "2000", Color(0xFF2196F3))
+            HeaderStatusIcon(Icons.Rounded.Star, "${uiState.points}", Color(0xFF2196F3))
             Spacer(modifier = Modifier.width(16.dp))
-            HeaderStatusIcon(Icons.Rounded.Whatshot, "135", Color(0xFFFF5722))
+            HeaderStatusIcon(Icons.Rounded.Whatshot, "${uiState.streakCount}", Color(0xFFFF5722))
             Spacer(modifier = Modifier.width(16.dp))
             Icon(
                 Icons.Rounded.DateRange, 
@@ -227,7 +220,7 @@ fun EnhancedSummaryCard(summary: DailySummary) {
                             "${summary.caloriesLeft}", 
                             style = MaterialTheme.typography.displayLarge.copy(
                                 fontWeight = FontWeight.Black,
-                                fontSize = 48.sp, // Daha büyük merkez değeri
+                                fontSize = 36.sp, // 32 -> 36
                                 letterSpacing = (-1).sp
                             )
                         )
@@ -242,7 +235,7 @@ fun EnhancedSummaryCard(summary: DailySummary) {
                     }
                 }
 
-                SummaryValueColumn("Yakılan", "142")
+                SummaryValueColumn("Yakılan", "${summary.burnedCalories}")
             }
 
             Spacer(modifier = Modifier.height(32.dp))

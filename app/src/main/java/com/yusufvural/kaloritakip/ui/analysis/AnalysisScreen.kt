@@ -25,7 +25,7 @@ fun AnalysisScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // --- HEADER ---
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 "Analiz",
