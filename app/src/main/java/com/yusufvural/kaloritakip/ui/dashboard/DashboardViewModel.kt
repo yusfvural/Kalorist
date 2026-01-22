@@ -31,19 +31,36 @@ class DashboardViewModel @Inject constructor(
 
     private fun observeFoodEntries() {
         viewModelScope.launch {
-            repository.getAllEntries().collect { entries ->
-                val totalCalories = entries.sumOf { it.calories }
-                val totalProtein = entries.sumOf { it.protein }
-                val totalCarbs = entries.sumOf { it.carbs }
-                val totalFat = entries.sumOf { it.fat }
+            // Bugünün başlangıç timestamp'ini al
+            val calendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val startOfDay = calendar.timeInMillis
+
+            // Combine both flows
+            kotlinx.coroutines.flow.combine(
+                repository.getEntriesForDay(startOfDay),
+                repository.getExercisesForDay(startOfDay)
+            ) { foodEntries, exerciseEntries ->
+                Pair(foodEntries, exerciseEntries)
+            }.collect { (foodEntries, exerciseEntries) ->
+                val totalCalories = foodEntries.sumOf { it.calories }
+                val totalProtein = foodEntries.sumOf { it.protein }
+                val totalCarbs = foodEntries.sumOf { it.carbs }
+                val totalFat = foodEntries.sumOf { it.fat }
                 
+                val totalBurnt = exerciseEntries.sumOf { it.caloriesBurnt }
+
                 _uiState.update { currentState ->
                     currentState.copy(
-                        entries = entries,
+                        entries = foodEntries,
                         summary = DailySummary(
                             totalCalories = totalCalories,
                             goalCalories = 2200,
-                            burnedCalories = 135, // Kullanıcının bahsettiği sabit yakılan kalori
+                            burnedCalories = totalBurnt,
                             proteinConsumed = totalProtein,
                             carbsConsumed = totalCarbs,
                             fatConsumed = totalFat
@@ -55,7 +72,6 @@ class DashboardViewModel @Inject constructor(
     }
 
     private fun calculateStreak() {
-        // Mevcut tarih bilgilerini hesapla
         val calendar = Calendar.getInstance()
         val dayOfWeek = when (calendar.get(Calendar.DAY_OF_WEEK)) {
             Calendar.MONDAY -> "Pazartesi"
@@ -70,8 +86,8 @@ class DashboardViewModel @Inject constructor(
         
         _uiState.update { it.copy(
             dayName = dayOfWeek,
-            streakCount = 5, // Örnek değer, veritabanından takip edilecek
-            points = 2000    // Örnek değer
+            streakCount = 5,
+            points = 2000
         ) }
     }
 
@@ -90,16 +106,16 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    fun addWater(amount: Int) {
-        _uiState.update { it.copy(waterIntake = it.waterIntake + amount) }
+    fun deleteFood(entry: FoodEntry) {
+        viewModelScope.launch {
+            repository.deleteFoodEntry(entry)
+        }
     }
 }
 
 data class DashboardUiState(
     val summary: DailySummary = DailySummary(),
     val entries: List<FoodEntry> = emptyList(),
-    val waterIntake: Int = 0,
-    val waterGoal: Int = 2000,
     val steps: Int = 0,
     val stepGoal: Int = 10000,
     val streakCount: Int = 0,

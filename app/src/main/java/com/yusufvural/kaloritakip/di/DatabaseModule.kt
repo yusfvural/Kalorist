@@ -22,11 +22,23 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
     fun provideFoodDao(database: AppDatabase): FoodDao {
         return database.foodDao()
+    }
+
+    @Provides
+    fun provideExerciseDao(database: AppDatabase): com.yusufvural.kaloritakip.data.ExerciseDao {
+        return database.exerciseDao()
+    }
+
+    @Provides
+    fun provideWaterDao(database: AppDatabase): com.yusufvural.kaloritakip.data.WaterDao {
+        return database.waterDao()
     }
 }

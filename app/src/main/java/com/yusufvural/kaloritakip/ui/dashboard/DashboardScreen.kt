@@ -38,8 +38,7 @@ fun DashboardScreen(
 
     DashboardContentV3(
         uiState = uiState,
-        onNavigate = onNavigate,
-        onAddWater = { dashboardViewModel.addWater(it) }
+        onNavigate = onNavigate
     )
 }
 
@@ -47,8 +46,7 @@ fun DashboardScreen(
 @Composable
 fun DashboardContentV3(
     uiState: DashboardUiState,
-    onNavigate: (String) -> Unit = {},
-    onAddWater: (Int) -> Unit = {}
+    onNavigate: (String) -> Unit = {}
 ) {
     val meals = listOf(
         MealItemData("Kahvaltı", Icons.Rounded.Coffee, MealType.BREAKFAST, "", 466, 566),
@@ -107,7 +105,8 @@ fun LazyListScope.dashboardNutrition(
             currentCal = currentCal,
             goalCal = meal.goalCal,
             description = description,
-            onAddClick = { onNavigate("add_food?mealType=${meal.type.name}") }
+            onAddClick = { onNavigate("add_food?mealType=${meal.type.name}") },
+            onClick = { onNavigate("meal_detail/${meal.type.name}") }
         )
     }
 }
@@ -323,10 +322,13 @@ fun MealRow(
     currentCal: Int,
     goalCal: Int,
     description: String,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Color(0xFFF0F0F0))

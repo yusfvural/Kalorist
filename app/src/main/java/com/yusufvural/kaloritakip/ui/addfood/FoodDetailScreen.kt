@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yusufvural.kaloritakip.model.MealType
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,10 +26,13 @@ fun FoodDetailScreen(
     protein: Double = 0.0,
     fat: Double = 0.0,
     carbs: Double = 0.0,
+    initialMealType: MealType? = null,
     onNavigateBack: () -> Unit,
-    onAddComplete: (String, Int, Double, Double, Double) -> Unit
+    onAddComplete: (String, Int, Double, Double, Double, MealType) -> Unit
 ) {
     var portion by remember { mutableStateOf(100f) } // Default 100g
+    var selectedMealType by remember { mutableStateOf(initialMealType ?: MealType.BREAKFAST) }
+
     val factor = portion / 100f
     val totalCalories = remember(portion) { (baseCalories * factor).roundToInt() }
     val totalProtein = remember(portion) { protein * factor }
@@ -58,7 +62,8 @@ fun FoodDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(20.dp))
@@ -91,7 +96,7 @@ fun FoodDetailScreen(
                 color = Color.Gray
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             // 2. KALORİ GÖSTERGESİ
             Card(
@@ -126,7 +131,51 @@ fun FoodDetailScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+            
+            // YENİ: ÖĞÜN SEÇİMİ
+            Text(
+                "ÖĞÜN SEÇİMİ", 
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                MealTypeOption(
+                    label = "Kahvaltı", 
+                    isSelected = selectedMealType == MealType.BREAKFAST,
+                    onClick = { selectedMealType = MealType.BREAKFAST },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                MealTypeOption(
+                    label = "Öğle", 
+                    isSelected = selectedMealType == MealType.LUNCH,
+                    onClick = { selectedMealType = MealType.LUNCH },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                MealTypeOption(
+                    label = "Akşam", 
+                    isSelected = selectedMealType == MealType.DINNER,
+                    onClick = { selectedMealType = MealType.DINNER },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                MealTypeOption(
+                    label = "Ara", 
+                    isSelected = selectedMealType == MealType.SNACK,
+                    onClick = { selectedMealType = MealType.SNACK },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
 
             // 3. PORSİYON SEÇİCİ
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
@@ -159,7 +208,7 @@ fun FoodDetailScreen(
 
             // 4. EKLE BUTONU
             Button(
-                onClick = { onAddComplete(foodName, totalCalories, totalProtein, totalFat, totalCarbs) },
+                onClick = { onAddComplete(foodName, totalCalories, totalProtein, totalFat, totalCarbs, selectedMealType) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
@@ -174,5 +223,34 @@ fun FoodDetailScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+fun MealTypeOption(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isSelected) Color(0xFFE31E24) else Color.White
+    val contentColor = if (isSelected) Color.White else Color.Black
+    val borderColor = if (isSelected) Color(0xFFE31E24) else Color(0xFFE0E0E0)
+
+    Box(
+        modifier = modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            color = contentColor,
+            fontSize = 13.sp
+        )
     }
 }

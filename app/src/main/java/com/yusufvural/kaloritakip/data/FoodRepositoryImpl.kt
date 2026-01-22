@@ -4,6 +4,9 @@ import com.yusufvural.kaloritakip.data.api.FoodApiService
 import com.yusufvural.kaloritakip.domain.model.SearchResult
 import com.yusufvural.kaloritakip.domain.FoodRepository
 import com.yusufvural.kaloritakip.model.FoodEntry
+import com.yusufvural.kaloritakip.model.ExerciseEntry
+import com.yusufvural.kaloritakip.model.WaterEntry
+import java.util.Calendar
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,6 +15,8 @@ import kotlin.math.roundToInt
 @Singleton
 class FoodRepositoryImpl @Inject constructor(
     private val foodDao: FoodDao,
+    private val exerciseDao: ExerciseDao,
+    private val waterDao: WaterDao, // Inject WaterDao
     private val apiService: FoodApiService
 ) : FoodRepository {
 
@@ -46,5 +51,42 @@ class FoodRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override fun getExercisesForDay(timestamp: Long): Flow<List<ExerciseEntry>> {
+        val startOfDay = timestamp
+        val endOfDay = timestamp + 86400000 // 24 hours in millis
+        return exerciseDao.getExercisesForDay(startOfDay, endOfDay)
+    }
+
+    override suspend fun addExerciseEntry(entry: ExerciseEntry) {
+        exerciseDao.insertExercise(entry)
+    }
+
+    override suspend fun deleteExerciseEntry(entry: ExerciseEntry) {
+        exerciseDao.deleteExercise(entry)
+    }
+
+    override fun getTotalWaterForDay(timestamp: Long): Flow<Int?> {
+        val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val dayStart = calendar.apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val dayEnd = calendar.apply {
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }.timeInMillis
+        return waterDao.getTotalWaterForDay(dayStart, dayEnd)
+    }
+
+    override suspend fun addWaterEntry(amount: Int) {
+        waterDao.insertWater(
+            WaterEntry(amountMl = amount)
+        )
     }
 }

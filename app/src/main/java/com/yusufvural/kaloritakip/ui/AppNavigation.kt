@@ -3,7 +3,9 @@ package com.yusufvural.kaloritakip.ui
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,17 +42,34 @@ fun AppNavHost(navController: NavHostController) {
             arguments = listOf(navArgument("mealType") { nullable = true })
         ) { backStackEntry ->
             val mealTypeStr = backStackEntry.arguments?.getString("mealType")
-            LibraryScreen(onNavigateToDetail = { name, calories, prot, fat, carb ->
-                val route = "food_detail/$name/$calories/$prot/$fat/$carb" + 
-                            if (mealTypeStr != null) "?mealType=$mealTypeStr" else ""
-                navController.navigate(route)
-            }) 
+            LibraryScreen(
+                onNavigateToDetail = { name, calories, prot, fat, carb ->
+                    val route = "food_detail/$name/$calories/$prot/$fat/$carb" + 
+                                if (mealTypeStr != null) "?mealType=$mealTypeStr" else ""
+                    navController.navigate(route)
+                }
+            ) 
         }
+
         composable("profile") { 
             ProfileScreen(onNavigate = { route -> navController.navigate(route) }) 
         }
         composable("target_calculator") {
             com.yusufvural.kaloritakip.ui.profile.TargetCalculatorScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = "meal_detail/{mealType}",
+            arguments = listOf(navArgument("mealType") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val mealTypeStr = backStackEntry.arguments?.getString("mealType") ?: "LUNCH"
+            val mealType = com.yusufvural.kaloritakip.model.MealType.valueOf(mealTypeStr)
+            val dashboardViewModel: DashboardViewModel = hiltViewModel()
+            
+            com.yusufvural.kaloritakip.ui.dashboard.MealDetailScreen(
+                mealType = mealType,
+                viewModel = dashboardViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -71,7 +90,8 @@ fun AppNavHost(navController: NavHostController) {
             val fat = backStackEntry.arguments?.getFloat("fat")?.toDouble() ?: 0.0
             val carbs = backStackEntry.arguments?.getFloat("carbs")?.toDouble() ?: 0.0
             val mealTypeStr = backStackEntry.arguments?.getString("mealType")
-            
+            val initialMealType = mealTypeStr?.let { MealType.valueOf(it) }
+
             val dashboardViewModel: DashboardViewModel = hiltViewModel()
 
             com.yusufvural.kaloritakip.ui.addfood.FoodDetailScreen(
@@ -80,10 +100,10 @@ fun AppNavHost(navController: NavHostController) {
                 protein = protein,
                 fat = fat,
                 carbs = carbs,
+                initialMealType = initialMealType,
                 onNavigateBack = { navController.popBackStack() },
-                onAddComplete = { name, cal, p, f, c ->
-                    val mealType = mealTypeStr?.let { MealType.valueOf(it) } ?: MealType.LUNCH
-                    dashboardViewModel.addFood(name, cal, p, c, f, mealType)
+                onAddComplete = { name, cal, p, f, c, selectedMealType ->
+                    dashboardViewModel.addFood(name, cal, p, c, f, selectedMealType)
                     navController.popBackStack("dashboard", inclusive = false)
                 }
             )
