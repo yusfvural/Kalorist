@@ -41,4 +41,9 @@ object DatabaseModule {
     fun provideWaterDao(database: AppDatabase): com.yusufvural.kaloritakip.data.WaterDao {
         return database.waterDao()
     }
+
+    @Provides
+    fun provideUserDao(database: AppDatabase): com.yusufvural.kaloritakip.data.UserDao {
+        return database.userDao()
+    }
 }

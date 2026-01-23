@@ -17,6 +17,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +33,22 @@ fun TargetCalculatorScreen(
     var activityLevel by remember { mutableStateOf(1.2f) } // Sedentary by default
 
     val scrollState = rememberScrollState()
+
+    val viewModel: androidx.lifecycle.ViewModel = androidx.hilt.navigation.compose.hiltViewModel<ProfileViewModel>()
+    // Cast to ProfileViewModel since hiltViewModel returns ViewModel type in some versions setup
+    val profileViewModel = viewModel as ProfileViewModel
+    val currentUser by profileViewModel.currentUser.collectAsState()
+
+    // Pre-fill data if available
+    LaunchedEffect(currentUser) {
+        currentUser?.let { user ->
+            gender = user.gender
+            age = user.age.toString()
+            weight = user.currentWeight.toString()
+            height = user.height.toString()
+            activityLevel = user.activityLevel
+        }
+    }
 
     // Calculation Logic (Mifflin-St Jeor)
     val bmr = remember(gender, age, weight, height) {
@@ -168,7 +187,28 @@ fun TargetCalculatorScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = onNavigateBack,
+                onClick = { 
+                    val userWeight = weight.toDoubleOrNull() ?: 75.0
+                    val protein = (tdee * 0.3 / 4) // 30% protein
+                    val carbs = (tdee * 0.5 / 4) // 50% carbs
+                    val fat = (tdee * 0.2 / 9) // 20% fat
+                    val water = (userWeight * 35).toInt()
+
+                    val user = com.yusufvural.kaloritakip.model.UserEntity(
+                        age = age.toIntOrNull() ?: 25,
+                        height = height.toIntOrNull() ?: 175,
+                        currentWeight = userWeight,
+                        gender = gender,
+                        activityLevel = activityLevel,
+                        dailyCalories = tdee,
+                        proteinGoal = protein,
+                        carbGoal = carbs,
+                        fatGoal = fat,
+                        waterGoal = water
+                    )
+                    profileViewModel.saveUser(user)
+                    onNavigateBack()
+                },
                 modifier = Modifier.fillMaxWidth().height(64.dp),
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE31E24))

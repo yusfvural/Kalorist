@@ -22,8 +22,11 @@ class FoodRepositoryImpl @Inject constructor(
 
     override fun getAllEntries(): Flow<List<FoodEntry>> = foodDao.getAllEntries()
 
-    override fun getEntriesForDay(timestamp: Long): Flow<List<FoodEntry>> = 
-        foodDao.getEntriesForDay(timestamp)
+    override fun getEntriesForDay(timestamp: Long): Flow<List<FoodEntry>> {
+        val startOfDay = timestamp
+        val endOfDay = timestamp + 86400000 // 24 hours in millis
+        return foodDao.getEntriesForDay(startOfDay, endOfDay)
+    }
 
     override suspend fun addFoodEntry(entry: FoodEntry) {
         foodDao.insertEntry(entry)

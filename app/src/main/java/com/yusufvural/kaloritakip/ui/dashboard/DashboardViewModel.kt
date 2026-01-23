@@ -18,7 +18,8 @@ import com.yusufvural.kaloritakip.domain.FoodRepository
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val repository: FoodRepository
+    private val repository: FoodRepository,
+    private val userRepository: com.yusufvural.kaloritakip.domain.UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -40,13 +41,14 @@ class DashboardViewModel @Inject constructor(
             }
             val startOfDay = calendar.timeInMillis
 
-            // Combine both flows
+            // Combine all flows
             kotlinx.coroutines.flow.combine(
                 repository.getEntriesForDay(startOfDay),
-                repository.getExercisesForDay(startOfDay)
-            ) { foodEntries, exerciseEntries ->
-                Pair(foodEntries, exerciseEntries)
-            }.collect { (foodEntries, exerciseEntries) ->
+                repository.getExercisesForDay(startOfDay),
+                userRepository.getUser()
+            ) { foodEntries, exerciseEntries, user ->
+                Triple(foodEntries, exerciseEntries, user)
+            }.collect { (foodEntries, exerciseEntries, user) ->
                 val totalCalories = foodEntries.sumOf { it.calories }
                 val totalProtein = foodEntries.sumOf { it.protein }
                 val totalCarbs = foodEntries.sumOf { it.carbs }
@@ -54,16 +56,25 @@ class DashboardViewModel @Inject constructor(
                 
                 val totalBurnt = exerciseEntries.sumOf { it.caloriesBurnt }
 
+                // Use user goals if available, otherwise defaults
+                val dailyGoal = user?.dailyCalories ?: 2200
+                val proteinGoal = user?.proteinGoal ?: 150.0
+                val carbGoal = user?.carbGoal ?: 300.0
+                val fatGoal = user?.fatGoal ?: 70.0
+
                 _uiState.update { currentState ->
                     currentState.copy(
                         entries = foodEntries,
                         summary = DailySummary(
                             totalCalories = totalCalories,
-                            goalCalories = 2200,
+                            goalCalories = dailyGoal,
                             burnedCalories = totalBurnt,
                             proteinConsumed = totalProtein,
+                            proteinGoal = proteinGoal,
                             carbsConsumed = totalCarbs,
-                            fatConsumed = totalFat
+                            carbsGoal = carbGoal,
+                            fatConsumed = totalFat,
+                            fatGoal = fatGoal
                         )
                     )
                 }
@@ -77,7 +88,7 @@ class DashboardViewModel @Inject constructor(
             Calendar.MONDAY -> "Pazartesi"
             Calendar.TUESDAY -> "Salı"
             Calendar.WEDNESDAY -> "Çarşamba"
-            Calendar.THURSDAY -> "Perşembe"
+            Calendar.THURSDAY -> "Perşembee"
             Calendar.FRIDAY -> "Cuma"
             Calendar.SATURDAY -> "Cumartesi"
             Calendar.SUNDAY -> "Pazar"

@@ -13,8 +13,8 @@ interface FoodDao {
     @Query("SELECT * FROM food_entries ORDER BY timestamp DESC")
     fun getAllEntries(): Flow<List<FoodEntry>>
 
-    @Query("SELECT * FROM food_entries WHERE timestamp >= :startOfDay ORDER BY timestamp DESC")
-    fun getEntriesForDay(startOfDay: Long): Flow<List<FoodEntry>>
+    @Query("SELECT * FROM food_entries WHERE timestamp >= :startOfDay AND timestamp < :endOfDay ORDER BY timestamp DESC")
+    fun getEntriesForDay(startOfDay: Long, endOfDay: Long): Flow<List<FoodEntry>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEntry(entry: FoodEntry)
