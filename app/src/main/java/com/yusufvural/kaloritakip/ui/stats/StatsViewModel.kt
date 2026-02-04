@@ -16,7 +16,8 @@ import kotlin.math.roundToInt
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
-    private val repository: FoodRepository
+    private val repository: FoodRepository,
+    private val userRepository: com.yusufvural.kaloritakip.domain.UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StatsUiState())
@@ -28,13 +29,19 @@ class StatsViewModel @Inject constructor(
 
     private fun loadStats() {
         viewModelScope.launch {
-            repository.getAllEntries().collect { allEntries ->
-                calculateWeeklyStats(allEntries)
+            // Combine food entries and user flow to get dynamic goals
+            kotlinx.coroutines.flow.combine(
+                repository.getAllEntries(),
+                userRepository.getUser()
+            ) { allEntries, user ->
+                Pair(allEntries, user)
+            }.collect { (allEntries, user) ->
+                calculateWeeklyStats(allEntries, user?.dailyCalories ?: 2200)
             }
         }
     }
 
-    private fun calculateWeeklyStats(allEntries: List<FoodEntry>) {
+    private fun calculateWeeklyStats(allEntries: List<FoodEntry>, userCalorieGoal: Int) {
         val calendar = Calendar.getInstance()
         val now = calendar.timeInMillis
         val sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000L)
@@ -49,10 +56,9 @@ class StatsViewModel @Inject constructor(
         val tempCalendar = Calendar.getInstance()
         val daysLabels = listOf("Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt")
 
-        // Pazartesi'den başla (Haftanın başlangıcı olarak Pzt seçilir)
+        // Pazartesi'den başla
         tempCalendar.timeInMillis = now
         tempCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-        // Eğer seçilen Pazartesi gelecekteyse bir hafta geri çek
         if (tempCalendar.timeInMillis > now) {
             tempCalendar.add(Calendar.WEEK_OF_YEAR, -1)
         }
@@ -75,9 +81,13 @@ class StatsViewModel @Inject constructor(
             dailyNames.add(dayName)
         }
 
-        val maxCal = dailyCalories.maxOrNull()?.coerceAtLeast(1) ?: 2200
+        // Use userCalorieGoal instead of hardcoded 2200 for max scaling logic if reasonable
+        // Usually chart max is driven by data max, but we can respect goal too
+        val maxData = dailyCalories.maxOrNull()?.coerceAtLeast(1) ?: userCalorieGoal
+        val chartMax = maxData.coerceAtLeast(userCalorieGoal) // Scale to at least the goal
+
         dailyCalories.forEach { cal ->
-            dayValues.add(cal.toFloat() / maxCal.toFloat())
+            dayValues.add(cal.toFloat() / chartMax.toFloat())
         }
 
         // Makro Dengesi
@@ -88,8 +98,9 @@ class StatsViewModel @Inject constructor(
 
         // İçgörü
         val avgCal = dailyCalories.average().roundToInt()
-        val insightTitle = if (avgCal < 2200) "Harika Gidiyorsun!" else "Denge Zamanı"
-        val insightMessage = if (avgCal < 2200) "Haftalık ortalaman hedeflerine çok yakın." else "Bu hafta biraz fazla enerji depolamışsın, yürüyüş işe yarayabilir!"
+        // Compare with userCalorieGoal
+        val insightTitle = if (avgCal <= userCalorieGoal) "Harika Gidiyorsun!" else "Denge Zamanı"
+        val insightMessage = if (avgCal <= userCalorieGoal) "Haftalık ortalaman hedeflerine uygun (${userCalorieGoal} kcal)." else "Haftalık ortalaman hedefinin (${userCalorieGoal} kcal) üzerinde."
 
         // Seri (Streak) Hesapla
         val streak = calculateStreak(allEntries)
@@ -106,8 +117,8 @@ class StatsViewModel @Inject constructor(
                 proteinGram = totalP.roundToInt(),
                 carbsGram = totalC.roundToInt(),
                 fatGram = totalF.roundToInt(),
-                streakCount = streak, // Yeni alan
-                insightTitle = "${streak} Günlük Seri!", // Başlık seri oldu
+                streakCount = streak,
+                insightTitle = "${streak} Günlük Seri!",
                 insightMessage = if (streak > 0) "Harika gidiyorsun, bu ateşi söndürme!" else "Bugün ilk adımını at ve serini başlat!"
             )
         }

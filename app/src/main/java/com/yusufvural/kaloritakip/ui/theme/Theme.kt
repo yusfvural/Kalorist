@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = EnerjikKirmizi,
-    secondary = RedSecondary,
+    secondary = SoftRed,
     tertiary = LightGrey,
     background = Color(0xFF121212),
     surface = Color(0xFF1E1E1E),
@@ -25,7 +25,7 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = EnerjikKirmizi,
-    secondary = RedSecondary,
+    secondary = SoftRed,
     tertiary = LightGrey,
     background = BackgroundWhite,
     surface = SurfaceGrey,

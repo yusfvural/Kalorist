@@ -8,7 +8,7 @@ import com.yusufvural.kaloritakip.model.ExerciseEntry
 import com.yusufvural.kaloritakip.model.WaterEntry
 import com.yusufvural.kaloritakip.model.UserEntity
 
-@Database(entities = [FoodEntry::class, ExerciseEntry::class, WaterEntry::class, UserEntity::class], version = 4, exportSchema = false)
+@Database(entities = [FoodEntry::class, ExerciseEntry::class, WaterEntry::class, UserEntity::class], version = 6, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun foodDao(): FoodDao

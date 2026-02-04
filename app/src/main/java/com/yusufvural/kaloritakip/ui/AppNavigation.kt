@@ -5,30 +5,84 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.navigation
+import com.yusufvural.kaloritakip.model.MealType
+import com.yusufvural.kaloritakip.ui.analysis.AnalysisScreen
+import com.yusufvural.kaloritakip.ui.auth.login.LoginScreen
+import com.yusufvural.kaloritakip.ui.auth.register.RegisterScreen
 import com.yusufvural.kaloritakip.ui.dashboard.DashboardScreen
+import com.yusufvural.kaloritakip.ui.dashboard.DashboardViewModel
+import com.yusufvural.kaloritakip.ui.dashboard.MealDetailScreen
+import com.yusufvural.kaloritakip.ui.library.LibraryScreen
+import com.yusufvural.kaloritakip.ui.profile.ProfileScreen
+import com.yusufvural.kaloritakip.ui.profile.TargetCalculatorScreen
 import com.yusufvural.kaloritakip.ui.stats.StatsScreen
 import com.yusufvural.kaloritakip.ui.stats.StatsViewModel
-import com.yusufvural.kaloritakip.ui.analysis.AnalysisScreen
-import com.yusufvural.kaloritakip.ui.profile.ProfileScreen
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.yusufvural.kaloritakip.ui.dashboard.DashboardViewModel
-import com.yusufvural.kaloritakip.model.MealType
-import com.yusufvural.kaloritakip.ui.library.LibraryScreen
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
+import kotlinx.coroutines.delay
+import com.google.firebase.auth.FirebaseAuth 
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "dashboard",
+        startDestination = "splash",
         enterTransition = { fadeIn(animationSpec = tween(300)) },
         exitTransition = { fadeOut(animationSpec = tween(300)) }
     ) {
+        composable("splash") {
+            // Basit bir Splash kontrolü
+            LaunchedEffect(Unit) {
+                delay(1000) // Logo gösterimi için kısa bir bekleme
+                if (FirebaseAuth.getInstance().currentUser != null) {
+                    navController.navigate("dashboard") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                } else {
+                    navController.navigate("auth") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            }
+            // Splash UI (Boş veya Logo olabilir, şimdilik boş bırakıyoruz veya basit bir Loading koyabiliriz)
+        }
+
+        navigation(startDestination = "login", route = "auth") {
+            composable("login") {
+                LoginScreen(
+                    onNavigateToDashboard = {
+                        navController.navigate("dashboard") {
+                            popUpTo("auth") { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate("register")
+                    }
+                )
+            }
+            composable("register") {
+                RegisterScreen(
+                    onNavigateToDashboard = {
+                        navController.navigate("dashboard") {
+                            popUpTo("auth") { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
         composable("dashboard") { 
             DashboardScreen(onNavigate = { route -> navController.navigate(route) }) 
         }
@@ -55,7 +109,7 @@ fun AppNavHost(navController: NavHostController) {
             ProfileScreen(onNavigate = { route -> navController.navigate(route) }) 
         }
         composable("target_calculator") {
-            com.yusufvural.kaloritakip.ui.profile.TargetCalculatorScreen(
+            TargetCalculatorScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -64,10 +118,10 @@ fun AppNavHost(navController: NavHostController) {
             arguments = listOf(navArgument("mealType") { type = NavType.StringType })
         ) { backStackEntry ->
             val mealTypeStr = backStackEntry.arguments?.getString("mealType") ?: "LUNCH"
-            val mealType = com.yusufvural.kaloritakip.model.MealType.valueOf(mealTypeStr)
+            val mealType = MealType.valueOf(mealTypeStr)
             val dashboardViewModel: DashboardViewModel = hiltViewModel()
             
-            com.yusufvural.kaloritakip.ui.dashboard.MealDetailScreen(
+            MealDetailScreen(
                 mealType = mealType,
                 viewModel = dashboardViewModel,
                 onNavigateBack = { navController.popBackStack() }

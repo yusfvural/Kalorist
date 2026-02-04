@@ -8,6 +8,7 @@ data class UserEntity(
     @PrimaryKey val id: Int = 0, // Single user for now, always ID 0
     
     // Basic Info
+    val name: String = "Kullanıcı",
     val age: Int = 25,
     val height: Int = 175, // cm
     val currentWeight: Double = 75.0, // kg
@@ -24,5 +25,6 @@ data class UserEntity(
     
     // Preferences
     val dietType: String = "Hepsi",
-    val unitSystem: String = "Metric" // Metric, Imperial
+    val unitSystem: String = "Metric", // Metric, Imperial
+    val remindersEnabled: Boolean = true
 )

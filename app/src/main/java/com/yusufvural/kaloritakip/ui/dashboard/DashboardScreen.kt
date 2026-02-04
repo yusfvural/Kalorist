@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -144,9 +145,9 @@ fun HeaderSectionV3(uiState: DashboardUiState) {
             Text(
                 uiState.dayName,
                 style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Black,
-                    fontSize = 40.sp,
-                    letterSpacing = (-1.5).sp
+                    fontWeight = FontWeight.Bold, // Black -> Bold (Cleaner)
+                    fontSize = 36.sp, // 40 -> 36 for better proportion
+                    letterSpacing = (-1).sp
                 )
             )
             Text(
@@ -201,13 +202,16 @@ fun EnhancedSummaryCard(summary: DailySummary) {
                 SummaryValueColumn("Alınan", "${summary.totalCalories}")
                 
                 Box(contentAlignment = Alignment.Center) {
+                    val progress = (summary.totalCalories.toFloat() / summary.goalCalories).coerceIn(0f, 1f)
+                    val isExceeded = summary.totalCalories > summary.goalCalories
+                    val uiColor = if (isExceeded) Color(0xFFE31E24) else Color(0xFF00C49F) // Red if exceeded, else Green/Teal
+
                     Canvas(modifier = Modifier.size(150.dp)) {
                         drawCircle(Color(0xFFF5F5F5), style = Stroke(width = 14.dp.toPx()))
                     }
-                    val progress = (summary.totalCalories.toFloat() / summary.goalCalories).coerceIn(0f, 1f)
                     Canvas(modifier = Modifier.size(150.dp)) {
                         drawArc(
-                            color = Color(0xFFE31E24),
+                            color = uiColor,
                             startAngle = -90f,
                             sweepAngle = 360 * progress,
                             useCenter = false,
@@ -219,13 +223,14 @@ fun EnhancedSummaryCard(summary: DailySummary) {
                             "${summary.caloriesLeft}", 
                             style = MaterialTheme.typography.displayLarge.copy(
                                 fontWeight = FontWeight.Black,
-                                fontSize = 36.sp, // 32 -> 36
+                                fontSize = 36.sp,
                                 letterSpacing = (-1).sp
-                            )
+                            ),
+                            color = if (isExceeded) Color(0xFFE31E24) else Color.Black
                         )
                         Text(
-                            "Kalan", 
-                            color = Color.Gray, 
+                            if (isExceeded) "Limit Aşıldı!" else "Kalan", 
+                            color = if (isExceeded) Color(0xFFE31E24) else Color.Gray, 
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
@@ -366,8 +371,9 @@ fun MealRow(
                     "$currentCal / $goalCal Kal", 
                     color = Color.Gray, 
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontWeight = FontWeight.SemiBold, // Bold -> SemiBold for cleaner look
+                        fontSize = 15.sp, // Slightly smaller
+                        letterSpacing = 0.5.sp // Add spacing
                     )
                 )
                 if (description.isNotEmpty()) {

@@ -13,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val authRepository: com.yusufvural.kaloritakip.domain.repository.AuthRepository
 ) : ViewModel() {
 
     val currentUser: StateFlow<UserEntity?> = userRepository.getUser()
@@ -27,5 +28,9 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             userRepository.saveUser(user)
         }
+    }
+
+    fun logout() {
+        authRepository.logout()
     }
 }

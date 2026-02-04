@@ -144,7 +144,26 @@ fun WaterTrackerCard(
                 color = Color.Black
             )
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Dynamic Status Text
+            val percentage = if (goalAmount > 0) currentAmount.toFloat() / goalAmount else 0f
+            val statusText = when {
+                percentage >= 1f -> "Harika! Hedefine ulaştın \uD83C\uDF89"
+                percentage > 0.5f -> "Yarıyı geçtin, devam et! \uD83D\uDCA7"
+                currentAmount > 0 -> "Su içmeyi unutma"
+                else -> "Güne bir bardak suyla başla \uD83C\uDF1E"
+            }
+            val statusColor = if (percentage >= 1f) Color(0xFF00C853) else Color.Gray
+
+            Text(
+                text = statusText,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = statusColor
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
             
             // Water Glasses Grid
             val glassCapacity = 250
