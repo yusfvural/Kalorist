@@ -194,7 +194,9 @@ fun TargetCalculatorScreen(
                     val fat = (tdee * 0.2 / 9) // 20% fat
                     val water = (userWeight * 35).toInt()
 
+                    val currentId = currentUser?.id ?: return@Button
                     val user = com.yusufvural.kaloritakip.model.UserEntity(
+                        id = currentId,
                         age = age.toIntOrNull() ?: 25,
                         height = height.toIntOrNull() ?: 175,
                         currentWeight = userWeight,

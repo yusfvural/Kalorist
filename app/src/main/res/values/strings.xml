@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">kaloritakip</string>
+    
+    <!-- Dashboard -->
+    <string name="breakfast">Kahvaltı</string>
+    <string name="lunch">Öğle Yemeği</string>
+    <string name="dinner">Akşam Yemeği</string>
+    <string name="snack">Atıştırmalık</string>
+    <string name="week">Hafta</string>
+    <string name="summary">Özet</string>
+    <string name="nutrition">Beslenme</string>
+    <string name="limit_exceeded">Limit Aşıldı!</string>
+    <string name="remaining">Kalan</string>
+    <string name="consumed">Alınan</string>
+    <string name="burned">Yakılan</string>
+    <string name="carb">Karb</string>
+    <string name="protein">Protein</string>
+    <string name="fat">Yağ</string>
 </resources>

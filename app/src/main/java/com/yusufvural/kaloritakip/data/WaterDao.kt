@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WaterDao {
-    @Query("SELECT * FROM water_table WHERE timestamp >= :dayStart AND timestamp < :dayEnd ORDER BY timestamp ASC")
-    fun getWaterForDay(dayStart: Long, dayEnd: Long): Flow<List<WaterEntry>>
+    @Query("SELECT * FROM water_table WHERE userId = :userId AND timestamp >= :dayStart AND timestamp < :dayEnd ORDER BY timestamp ASC")
+    fun getWaterForDay(userId: String, dayStart: Long, dayEnd: Long): Flow<List<WaterEntry>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWater(entry: WaterEntry)
@@ -19,6 +19,6 @@ interface WaterDao {
     @Delete
     suspend fun deleteWater(entry: WaterEntry)
 
-    @Query("SELECT SUM(amountMl) FROM water_table WHERE timestamp >= :dayStart AND timestamp < :dayEnd")
-    fun getTotalWaterForDay(dayStart: Long, dayEnd: Long): Flow<Int?>
+    @Query("SELECT SUM(amountMl) FROM water_table WHERE userId = :userId AND timestamp >= :dayStart AND timestamp < :dayEnd")
+    fun getTotalWaterForDay(userId: String, dayStart: Long, dayEnd: Long): Flow<Int?>
 }

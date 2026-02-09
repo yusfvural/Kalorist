@@ -110,13 +110,20 @@ fun ChartHeader(uiState: StatsUiState) {
 @Composable
 fun WeeklyChartCard(uiState: StatsUiState) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 12.dp, 
+                shape = RoundedCornerShape(32.dp),
+                spotColor = Color(0x14000000), // PremiumShadow
+                ambientColor = Color(0x14000000)
+            ),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        border = BorderStroke(1.dp, Color(0xFFFAFAFA))
     ) {
         Column(modifier = Modifier.padding(vertical = 28.dp, horizontal = 12.dp)) {
-            // Borsa Tarzı Çizgi Grafik (Line Chart)
+            // ... (rest of content)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -213,10 +220,17 @@ fun WeeklyChartCard(uiState: StatsUiState) {
 @Composable
 fun MacroAveragesCard(uiState: StatsUiState) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 12.dp, 
+                shape = RoundedCornerShape(32.dp),
+                spotColor = Color(0x14000000),
+                ambientColor = Color(0x14000000)
+            ),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        border = BorderStroke(1.dp, Color(0xFFFAFAFA))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
 

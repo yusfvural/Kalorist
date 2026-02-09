@@ -43,7 +43,7 @@ fun ModernFloatingNavigationBar(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE31E24))
+                    .background(com.yusufvural.kaloritakip.ui.theme.PrimaryRed)
                     .clickable { onNavigate("add_food") },
                 contentAlignment = Alignment.Center
             ) {
@@ -62,7 +62,7 @@ private fun NavIcon(icon: ImageVector, route: String, currentRoute: String, onNa
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (currentRoute == route) Color(0xFFE31E24) else Color.LightGray,
+            tint = if (currentRoute == route) com.yusufvural.kaloritakip.ui.theme.PrimaryRed else Color.LightGray,
             modifier = Modifier.size(28.dp)
         )
     }

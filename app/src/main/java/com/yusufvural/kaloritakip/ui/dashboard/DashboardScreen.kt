@@ -1,5 +1,7 @@
 package com.yusufvural.kaloritakip.ui.dashboard
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,7 +28,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.yusufvural.kaloritakip.model.DailySummary
 import com.yusufvural.kaloritakip.model.MealType
-import com.yusufvural.kaloritakip.ui.theme.KaloritakipTheme
+import com.yusufvural.kaloritakip.ui.theme.*
+import com.yusufvural.kaloritakip.R
+import androidx.compose.ui.res.stringResource
 import java.util.Calendar
 
 // --- STATEFUL COMPOSABLE ---
@@ -43,25 +47,20 @@ fun DashboardScreen(
     )
 }
 
-// --- STATELESS COMPOSABLE (V3 - Reference Match) ---
+// --- STATELESS COMPOSABLE (V3 - Premium Redesign) ---
 @Composable
 fun DashboardContentV3(
     uiState: DashboardUiState,
     onNavigate: (String) -> Unit = {}
 ) {
-    val meals = listOf(
-        MealItemData("Kahvaltı", Icons.Rounded.Coffee, MealType.BREAKFAST, "", 466, 566),
-        MealItemData("Öğle Yemeği", Icons.Rounded.LunchDining, MealType.LUNCH, "", 554, 755),
-        MealItemData("Akşam Yemeği", Icons.Rounded.DinnerDining, MealType.DINNER, "", 0, 600),
-        MealItemData("Atıştırmalık", Icons.Rounded.Fastfood, MealType.SNACK, "", 120, 200)
-    )
+    // Meals data is now coming from UiState -> MealUiModel
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFBFBFD)),
-        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 0.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .background(Color(0xFFFBFBFD)), // Keep light background for now as requested
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 0.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp), // Increased spacing
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Modular Items
@@ -69,7 +68,7 @@ fun DashboardContentV3(
         
         dashboardSummary(uiState.summary)
         
-        dashboardNutrition(meals, uiState, onNavigate)
+        dashboardNutrition(uiState.mealList, onNavigate)
     }
 }
 
@@ -81,31 +80,22 @@ fun LazyListScope.dashboardHeader(uiState: DashboardUiState) {
 
 fun LazyListScope.dashboardSummary(summary: DailySummary) {
     item { 
-        SectionTitle("Özet")
+        SectionTitle(stringResource(R.string.summary))
         EnhancedSummaryCard(summary = summary)
     }
 }
 
 fun LazyListScope.dashboardNutrition(
-    meals: List<MealItemData>, 
-    uiState: DashboardUiState, 
+    meals: List<MealUiModel>, 
     onNavigate: (String) -> Unit
 ) {
     item { 
-        SectionTitle("Beslenme")
+        SectionTitle(stringResource(R.string.nutrition))
     }
     
     items(meals) { meal ->
-        val entriesForMeal = uiState.entries.filter { it.mealType == meal.type }
-        val currentCal = entriesForMeal.sumOf { it.calories }
-        val description = if (entriesForMeal.isEmpty()) "" else entriesForMeal.joinToString(", ") { it.name }.take(35) + (if (entriesForMeal.joinToString(", ").length > 35) "..." else "")
-        
         MealRow(
-            label = meal.label,
-            icon = meal.icon,
-            currentCal = currentCal,
-            goalCal = meal.goalCal,
-            description = description,
+            uiModel = meal,
             onAddClick = { onNavigate("add_food?mealType=${meal.type.name}") },
             onClick = { onNavigate("meal_detail/${meal.type.name}") }
         )
@@ -117,16 +107,17 @@ fun SectionTitle(title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 12.dp),
+            .padding(top = 24.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
     ) {
         Text(
             title,
             style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Black,
-                fontSize = 24.sp,
-                letterSpacing = (-0.5).sp
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp, // Reverted to 24
+                letterSpacing = (-0.5).sp,
+                color = TextPrimary
             )
         )
     }
@@ -137,7 +128,7 @@ fun HeaderSectionV3(uiState: DashboardUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 24.dp), // Üst boşluk İstatistikler sayfasıyla eşitlendi
+            .padding(top = 32.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -145,114 +136,146 @@ fun HeaderSectionV3(uiState: DashboardUiState) {
             Text(
                 uiState.dayName,
                 style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Bold, // Black -> Bold (Cleaner)
-                    fontSize = 36.sp, // 40 -> 36 for better proportion
-                    letterSpacing = (-1).sp
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 36.sp, // Reverted to 36
+                    letterSpacing = (-1).sp,
+                    color = Color.Black
                 )
             )
             Text(
-                "Hafta ${uiState.weekCount}",
-                color = Color.Gray,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                "${stringResource(R.string.week)} ${uiState.weekCount}",
+                color = TextSecondaryLight,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium
+                    // Removed explicit 16.sp to likely match old default or keep it if it looks close. Old was just bodyLarge.
+                )
             )
         }
         
         Row(
-            modifier = Modifier.padding(top = 10.dp),
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .background(Color.White, RoundedCornerShape(50))
+                .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(50))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            HeaderStatusIcon(Icons.Rounded.Star, "${uiState.points}", Color(0xFF2196F3))
-            Spacer(modifier = Modifier.width(16.dp))
-            HeaderStatusIcon(Icons.Rounded.Whatshot, "${uiState.streakCount}", Color(0xFFFF5722))
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                Icons.Rounded.DateRange, 
-                contentDescription = null, 
-                modifier = Modifier.size(24.dp),
-                tint = Color.Black
-            )
+            Icon(Icons.Rounded.Whatshot, null, tint = Color(0xFFFF5722), modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("${uiState.streakCount}", fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
-    }
-}
-
-@Composable
-fun HeaderStatusIcon(icon: ImageVector, text: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
     }
 }
 
 @Composable
 fun EnhancedSummaryCard(summary: DailySummary) {
+    // Animation States
+    var animationPlayed by remember { mutableStateOf(false) }
+    
+    // Animate progress on launch
+    LaunchedEffect(key1 = true) {
+        animationPlayed = true
+    }
+
+    val caloriesProgress by animateFloatAsState(
+        targetValue = if (animationPlayed) (summary.totalCalories.toFloat() / summary.goalCalories).coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(durationMillis = 1200, delayMillis = 100), label = "cal"
+    )
+
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .shadow(
+                elevation = 16.dp, 
+                shape = RoundedCornerShape(32.dp),
+                spotColor = PremiumShadow,
+                ambientColor = PremiumShadow
+            ),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        border = BorderStroke(1.dp, Color(0xFFFAFAFA))
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SummaryValueColumn("Alınan", "${summary.totalCalories}")
-                
-                Box(contentAlignment = Alignment.Center) {
-                    val progress = (summary.totalCalories.toFloat() / summary.goalCalories).coerceIn(0f, 1f)
-                    val isExceeded = summary.totalCalories > summary.goalCalories
-                    val uiColor = if (isExceeded) Color(0xFFE31E24) else Color(0xFF00C49F) // Red if exceeded, else Green/Teal
+        Box(
+            modifier = Modifier.background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(PremiumCardGradientStart, PremiumCardGradientEnd)
+                )
+            )
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) { // Padding 24
+                // Main Ring Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // LEFT: Consumed
+                    SummaryValueColumn(stringResource(R.string.consumed), "${summary.totalCalories}")
+                    
+                    // CENTER: Ring
+                    Box(contentAlignment = Alignment.Center) {
+                        val isExceeded = summary.totalCalories > summary.goalCalories
+                        val uiColor = if (isExceeded) PrimaryGradientStart else SuccessGreen
 
-                    Canvas(modifier = Modifier.size(150.dp)) {
-                        drawCircle(Color(0xFFF5F5F5), style = Stroke(width = 14.dp.toPx()))
-                    }
-                    Canvas(modifier = Modifier.size(150.dp)) {
-                        drawArc(
-                            color = uiColor,
-                            startAngle = -90f,
-                            sweepAngle = 360 * progress,
-                            useCenter = false,
-                            style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "${summary.caloriesLeft}", 
-                            style = MaterialTheme.typography.displayLarge.copy(
-                                fontWeight = FontWeight.Black,
-                                fontSize = 36.sp,
-                                letterSpacing = (-1).sp
-                            ),
-                            color = if (isExceeded) Color(0xFFE31E24) else Color.Black
-                        )
-                        Text(
-                            if (isExceeded) "Limit Aşıldı!" else "Kalan", 
-                            color = if (isExceeded) Color(0xFFE31E24) else Color.Gray, 
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                        // Background Ring
+                        Canvas(modifier = Modifier.size(150.dp)) { // Reverted size to 150 (was 160 in new, 150 in old)
+                            drawCircle(Color(0xFFF3F4F6), style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)) // Width 14
+                        }
+                        
+                        // Foreground Ring (Animated)
+                        Canvas(modifier = Modifier.size(150.dp)) {
+                            drawArc(
+                                color = uiColor,
+                                startAngle = -90f,
+                                sweepAngle = 360 * caloriesProgress,
+                                useCenter = false,
+                                style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
                             )
-                        )
+                        }
+                        
+                        // Center Text
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "${summary.caloriesLeft}", 
+                                style = MaterialTheme.typography.displayMedium.copy(
+                                    fontWeight = FontWeight.Black, // Reverted Black
+                                    fontSize = 36.sp, // Reverted to 36
+                                    letterSpacing = (-1).sp // Reverted -1
+                                ),
+                                color = if (isExceeded) com.yusufvural.kaloritakip.ui.theme.PrimaryRed else TextPrimary
+                            )
+                            Text(
+                                if (isExceeded) stringResource(R.string.limit_exceeded) else stringResource(R.string.remaining), 
+                                color = TextSecondaryLight, 
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                            )
+                        }
                     }
+                    
+                    // RIGHT: Burned
+                    SummaryValueColumn(stringResource(R.string.burned), "${summary.burnedCalories}")
                 }
 
-                SummaryValueColumn("Yakılan", "${summary.burnedCalories}")
-            }
+                Spacer(modifier = Modifier.height(32.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                MacroHorizontalBar("Karb", summary.carbsConsumed.toInt(), summary.carbsGoal.toInt(), Color(0xFF00C49F), Modifier.weight(1f))
-                Spacer(modifier = Modifier.width(12.dp))
-                MacroHorizontalBar("Protein", summary.proteinConsumed.toInt(), summary.proteinGoal.toInt(), Color(0xFFE31E24), Modifier.weight(1f))
-                Spacer(modifier = Modifier.width(12.dp))
-                MacroHorizontalBar("Yağ", summary.fatConsumed.toInt(), summary.fatGoal.toInt(), Color(0xFFFFBB28), Modifier.weight(1f))
+                // Macros
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val carbProgress = if (summary.carbsGoal > 0) (summary.carbsConsumed / summary.carbsGoal).toFloat() else 0f
+                    val protProgress = if (summary.proteinGoal > 0) (summary.proteinConsumed / summary.proteinGoal).toFloat() else 0f
+                    val fatProgress = if (summary.fatGoal > 0) (summary.fatConsumed / summary.fatGoal).toFloat() else 0f
+                    
+                    MacroVerticalBar(stringResource(R.string.carb), "${summary.carbsConsumed.toInt()}", carbProgress, NutrientCarb, Modifier.weight(1f), animationPlayed)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    MacroVerticalBar(stringResource(R.string.protein), "${summary.proteinConsumed.toInt()}", protProgress, NutrientProtein, Modifier.weight(1f), animationPlayed)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    MacroVerticalBar(stringResource(R.string.fat), "${summary.fatConsumed.toInt()}", fatProgress, NutrientFat, Modifier.weight(1f), animationPlayed)
+                }
             }
         }
     }
@@ -265,12 +288,13 @@ fun SummaryValueColumn(label: String, value: String) {
             value, 
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.Black, 
-                fontSize = 26.sp
+                fontSize = 26.sp, // Reverted to 26
+                color = TextPrimary
             )
         )
         Text(
             label, 
-            color = Color.Gray, 
+            color = TextSecondaryLight, 
             style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 14.sp
@@ -280,63 +304,63 @@ fun SummaryValueColumn(label: String, value: String) {
 }
 
 @Composable
-fun MacroHorizontalBar(label: String, current: Int, goal: Int, color: Color, modifier: Modifier) {
+fun MacroVerticalBar(
+    label: String, 
+    value: String, 
+    targetProgress: Float, 
+    color: Color, 
+    modifier: Modifier,
+    playAnimation: Boolean
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (playAnimation) targetProgress.coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(durationMillis = 1000, delayMillis = 300),
+        label = "macro"
+    )
+
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            label, 
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 15.sp
-            ), 
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        val progress = if (goal > 0) (current.toFloat() / goal) else 0f
+        // Text on top
+        Text(value + "g", fontWeight = FontWeight.Black, fontSize = 17.sp, color = TextPrimary) // Reverted to 17 + Black
+        Text(label, fontSize = 15.sp, color = TextSecondaryLight, fontWeight = FontWeight.Bold) // Reverted to 15 + Bold
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Progress Bar
         LinearProgressIndicator(
-            progress = { progress.coerceIn(0f, 1f) },
+            progress = { animatedProgress },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(12.dp) // Daha kalın ve kullanışlı bar
+                .height(10.dp) // Slightly thicker
                 .clip(CircleShape),
             color = color,
-            trackColor = color.copy(alpha = 0.15f)
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            "${current} / ${goal} g", 
-            fontSize = 17.sp, 
-            fontWeight = FontWeight.Black,
-            letterSpacing = 0.5.sp
+            trackColor = color.copy(alpha = 0.15f),
         )
     }
 }
 
-data class MealItemData(
-    val label: String,
-    val icon: ImageVector,
-    val type: MealType,
-    val description: String,
-    val currentCal: Int,
-    val goalCal: Int
-)
-
 @Composable
 fun MealRow(
-    label: String,
-    icon: ImageVector,
-    currentCal: Int,
-    goalCal: Int,
-    description: String,
+    uiModel: MealUiModel,
     onAddClick: () -> Unit,
     onClick: () -> Unit
 ) {
+    var animationPlayed by remember { mutableStateOf(false) }
+    LaunchedEffect(key1 = true) { animationPlayed = true }
+    
+    val progress by animateFloatAsState(
+        targetValue = if (animationPlayed && uiModel.goalCal > 0) (uiModel.currentCal.toFloat() / uiModel.goalCal).coerceIn(0f, 1f) else 0f,
+        animationSpec = tween(durationMillis = 800, delayMillis = 200),
+        label = "meal"
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(24.dp), spotColor = PremiumShadow)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        border = BorderStroke(0.5.dp, Color(0xFFF0F0F0))
     ) {
         Row(
             modifier = Modifier
@@ -344,78 +368,71 @@ fun MealRow(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
-                val progress = if (goalCal > 0) (currentCal.toFloat() / goalCal) else 0f
+            // Animated Icon + Ring
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) { // Reverted to 56
                 Canvas(modifier = Modifier.size(56.dp)) {
-                    drawCircle(Color(0xFFF5F5F5), style = Stroke(width = 5.dp.toPx()))
+                    drawCircle(Color(0xFFF3F4F6), style = Stroke(width = 5.dp.toPx())) // Reverted width
                     drawArc(
-                        color = Color(0xFF00C49F),
+                        color = if (uiModel.isExceeded) com.yusufvural.kaloritakip.ui.theme.PrimaryRed else com.yusufvural.kaloritakip.ui.theme.SuccessGreen,
                         startAngle = -90f,
-                        sweepAngle = 360 * progress.coerceIn(0f, 1f),
+                        sweepAngle = 360 * progress,
                         useCenter = false,
                         style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
                     )
                 }
-                Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(26.dp))
+                Icon(uiModel.icon, contentDescription = null, tint = TextSecondaryLight, modifier = Modifier.size(26.dp)) // Reverted to 26
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    label, 
+                    stringResource(uiModel.labelResId), 
                     fontWeight = FontWeight.Black, 
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp)
+                    fontSize = 22.sp, // Reverted to 22
+                    color = TextPrimary
                 )
-                Text(
-                    "$currentCal / $goalCal Kal", 
-                    color = Color.Gray, 
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.SemiBold, // Bold -> SemiBold for cleaner look
-                        fontSize = 15.sp, // Slightly smaller
-                        letterSpacing = 0.5.sp // Add spacing
-                    )
-                )
-                if (description.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                if (uiModel.description.isNotEmpty()) {
                     Text(
-                        description,
-                        color = Color.LightGray,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1
-                    )
-                } else {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "Henüz eklenmedi",
-                        color = Color.LightGray,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1
+                        uiModel.description,
+                        color = TextSecondaryLight,
+                        fontSize = 13.sp, // Kept small-ish for description
+                        maxLines = 1,
+                        lineHeight = 16.sp,
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
+                
+                Text(
+                    "${uiModel.currentCal} / ${uiModel.goalCal} Kal", 
+                    color = if (uiModel.isExceeded) com.yusufvural.kaloritakip.ui.theme.PrimaryRed else TextSecondaryLight, 
+                    fontSize = 15.sp, // Reverted to 15
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
             }
 
             IconButton(
                 onClick = onAddClick,
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.Black)
+                    .background(Color.Black) // Or PrimaryRed
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                Icon(Icons.Rounded.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
             }
         }
     }
 }
 
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun DashboardPreviewV3() {
     KaloritakipTheme {
         DashboardContentV3(
             uiState = DashboardUiState(
-                summary = DailySummary(totalCalories = 1020, goalCalories = 1888)
+                summary = DailySummary(totalCalories = 1020, goalCalories = 1888, carbsConsumed = 120.0, carbsGoal = 200.0, proteinConsumed = 80.0, proteinGoal = 150.0, fatConsumed = 40.0, fatGoal = 70.0)
             )
         )
     }

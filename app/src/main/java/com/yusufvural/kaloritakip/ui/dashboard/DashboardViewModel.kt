@@ -5,7 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.yusufvural.kaloritakip.model.DailySummary
 import com.yusufvural.kaloritakip.model.FoodEntry
 import com.yusufvural.kaloritakip.model.MealType
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Coffee
+import androidx.compose.material.icons.rounded.DinnerDining
+import androidx.compose.material.icons.rounded.Fastfood
+import androidx.compose.material.icons.rounded.LunchDining
+import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.yusufvural.kaloritakip.R
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -62,22 +69,54 @@ class DashboardViewModel @Inject constructor(
                 val carbGoal = user?.carbGoal ?: 300.0
                 val fatGoal = user?.fatGoal ?: 70.0
 
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        entries = foodEntries,
-                        summary = DailySummary(
-                            totalCalories = totalCalories,
-                            goalCalories = dailyGoal,
-                            burnedCalories = totalBurnt,
-                            proteinConsumed = totalProtein,
-                            proteinGoal = proteinGoal,
-                            carbsConsumed = totalCarbs,
-                            carbsGoal = carbGoal,
-                            fatConsumed = totalFat,
-                            fatGoal = fatGoal
-                        )
+                    val mealsConfig = listOf(
+                        Triple(MealType.BREAKFAST, R.string.breakfast, Icons.Rounded.Coffee),
+                        Triple(MealType.LUNCH, R.string.lunch, Icons.Rounded.LunchDining),
+                        Triple(MealType.DINNER, R.string.dinner, Icons.Rounded.DinnerDining),
+                        Triple(MealType.SNACK, R.string.snack, Icons.Rounded.Fastfood)
                     )
-                }
+
+                    val mealList = mealsConfig.map { (type, labelResId, icon) ->
+                        val mealEntries = foodEntries.filter { it.mealType == type }
+                        val currentCal = mealEntries.sumOf { it.calories }
+                        // Hardcoded goals for now, matches previous UI logic
+                        val goal = when(type) {
+                            MealType.BREAKFAST -> 566
+                            MealType.LUNCH -> 755
+                            MealType.DINNER -> 600
+                            MealType.SNACK -> 200
+                        }
+                        
+                        val description = if (mealEntries.isEmpty()) "" else mealEntries.joinToString(", ") { it.name }.take(35) + (if (mealEntries.joinToString(", ").length > 35) "..." else "")
+
+                        MealUiModel(
+                            labelResId = labelResId,
+                            icon = icon,
+                            type = type,
+                            currentCal = currentCal,
+                            goalCal = goal,
+                            description = description,
+                            isExceeded = currentCal > goal && goal > 0
+                        )
+                    }
+
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            entries = foodEntries,
+                            summary = DailySummary(
+                                totalCalories = totalCalories,
+                                goalCalories = dailyGoal,
+                                burnedCalories = totalBurnt,
+                                proteinConsumed = totalProtein,
+                                proteinGoal = proteinGoal,
+                                carbsConsumed = totalCarbs,
+                                carbsGoal = carbGoal,
+                                fatConsumed = totalFat,
+                                fatGoal = fatGoal
+                            ),
+                            mealList = mealList
+                        )
+                    }
             }
         }
     }
@@ -111,7 +150,8 @@ class DashboardViewModel @Inject constructor(
                 protein = protein,
                 carbs = carbs,
                 fat = fat,
-                mealType = mealType
+                mealType = mealType,
+                userId = ""
             )
             repository.addFoodEntry(newEntry)
         }
@@ -133,5 +173,16 @@ data class DashboardUiState(
     val points: Int = 0,
     val dayName: String = "Bugün",
     val weekCount: Int = 1,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val mealList: List<MealUiModel> = emptyList()
+)
+
+data class MealUiModel(
+    val labelResId: Int,
+    val icon: ImageVector,
+    val type: MealType,
+    val currentCal: Int,
+    val goalCal: Int,
+    val description: String,
+    val isExceeded: Boolean
 )

@@ -72,7 +72,8 @@ class AnalysisViewModel @Inject constructor(
                 id = java.util.UUID.randomUUID().toString(),
                 name = name,
                 caloriesBurnt = calories,
-                durationMinutes = duration
+                durationMinutes = duration,
+                userId = ""
             )
             repository.addExerciseEntry(entry)
         }

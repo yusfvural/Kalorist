@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExerciseDao {
-    @Query("SELECT * FROM exercise_table ORDER BY timestamp DESC")
-    fun getAllExercises(): Flow<List<ExerciseEntry>>
+    @Query("SELECT * FROM exercise_table WHERE userId = :userId ORDER BY timestamp DESC")
+    fun getAllExercises(userId: String): Flow<List<ExerciseEntry>>
 
-    @Query("SELECT * FROM exercise_table WHERE timestamp >= :dayStart AND timestamp < :dayEnd")
-    fun getExercisesForDay(dayStart: Long, dayEnd: Long): Flow<List<ExerciseEntry>>
+    @Query("SELECT * FROM exercise_table WHERE userId = :userId AND timestamp >= :dayStart AND timestamp < :dayEnd")
+    fun getExercisesForDay(userId: String, dayStart: Long, dayEnd: Long): Flow<List<ExerciseEntry>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercise(exercise: ExerciseEntry)

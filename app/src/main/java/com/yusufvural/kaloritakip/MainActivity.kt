@@ -37,7 +37,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute in listOf("dashboard", "stats", "analysis", "profile")
+    val showBottomBar = currentRoute in listOf("dashboard", "stats", "analysis", "profile", "add_food?mealType={mealType}")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

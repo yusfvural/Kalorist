@@ -16,20 +16,29 @@ import kotlin.math.roundToInt
 class FoodRepositoryImpl @Inject constructor(
     private val foodDao: FoodDao,
     private val exerciseDao: ExerciseDao,
-    private val waterDao: WaterDao, // Inject WaterDao
-    private val apiService: FoodApiService
+    private val waterDao: WaterDao,
+    private val apiService: FoodApiService,
+    private val auth: com.google.firebase.auth.FirebaseAuth
 ) : FoodRepository {
 
-    override fun getAllEntries(): Flow<List<FoodEntry>> = foodDao.getAllEntries()
+    private val currentUserId: String?
+        get() = auth.currentUser?.uid
+
+    override fun getAllEntries(): Flow<List<FoodEntry>> {
+        val uid = currentUserId ?: return kotlinx.coroutines.flow.emptyFlow()
+        return foodDao.getAllEntries(uid)
+    }
 
     override fun getEntriesForDay(timestamp: Long): Flow<List<FoodEntry>> {
+        val uid = currentUserId ?: return kotlinx.coroutines.flow.emptyFlow()
         val startOfDay = timestamp
         val endOfDay = timestamp + 86400000 // 24 hours in millis
-        return foodDao.getEntriesForDay(startOfDay, endOfDay)
+        return foodDao.getEntriesForDay(uid, startOfDay, endOfDay)
     }
 
     override suspend fun addFoodEntry(entry: FoodEntry) {
-        foodDao.insertEntry(entry)
+        val uid = currentUserId ?: return
+        foodDao.insertEntry(entry.copy(userId = uid))
     }
 
     override suspend fun deleteFoodEntry(entry: FoodEntry) {
@@ -57,13 +66,15 @@ class FoodRepositoryImpl @Inject constructor(
     }
 
     override fun getExercisesForDay(timestamp: Long): Flow<List<ExerciseEntry>> {
+        val uid = currentUserId ?: return kotlinx.coroutines.flow.emptyFlow()
         val startOfDay = timestamp
         val endOfDay = timestamp + 86400000 // 24 hours in millis
-        return exerciseDao.getExercisesForDay(startOfDay, endOfDay)
+        return exerciseDao.getExercisesForDay(uid, startOfDay, endOfDay)
     }
 
     override suspend fun addExerciseEntry(entry: ExerciseEntry) {
-        exerciseDao.insertExercise(entry)
+        val uid = currentUserId ?: return
+        exerciseDao.insertExercise(entry.copy(userId = uid))
     }
 
     override suspend fun deleteExerciseEntry(entry: ExerciseEntry) {
@@ -71,6 +82,7 @@ class FoodRepositoryImpl @Inject constructor(
     }
 
     override fun getTotalWaterForDay(timestamp: Long): Flow<Int?> {
+        val uid = currentUserId ?: return kotlinx.coroutines.flow.flowOf(0)
         val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
         val dayStart = calendar.apply {
             set(Calendar.HOUR_OF_DAY, 0)
@@ -84,12 +96,13 @@ class FoodRepositoryImpl @Inject constructor(
             set(Calendar.SECOND, 59)
             set(Calendar.MILLISECOND, 999)
         }.timeInMillis
-        return waterDao.getTotalWaterForDay(dayStart, dayEnd)
+        return waterDao.getTotalWaterForDay(uid, dayStart, dayEnd)
     }
 
     override suspend fun addWaterEntry(amount: Int) {
+        val uid = currentUserId ?: return
         waterDao.insertWater(
-            WaterEntry(amountMl = amount)
+            WaterEntry(amountMl = amount, userId = uid)
         )
     }
 }

@@ -21,7 +21,7 @@ fun MainCalorieCard(summary: DailySummary) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(30.dp, RoundedCornerShape(32.dp), ambientColor = Color(0xFFE31E24).copy(alpha = 0.4f)),
+            .shadow(30.dp, RoundedCornerShape(32.dp), ambientColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed.copy(alpha = 0.4f)),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -36,7 +36,7 @@ fun MainCalorieCard(summary: DailySummary) {
                 val progress = (summary.totalCalories.toFloat() / summary.goalCalories).coerceIn(0f, 1f)
                 Canvas(modifier = Modifier.size(180.dp)) {
                     drawArc(
-                        brush = Brush.sweepGradient(listOf(Color(0xFFFF5F6D), Color(0xFFE31E24))),
+                        brush = Brush.sweepGradient(listOf(com.yusufvural.kaloritakip.ui.theme.PrimaryGradientEnd, com.yusufvural.kaloritakip.ui.theme.PrimaryGradientStart)),
                         startAngle = -90f,
                         sweepAngle = 360 * progress,
                         useCenter = false,
@@ -52,7 +52,7 @@ fun MainCalorieCard(summary: DailySummary) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 InfoColumn("Hedef", "${summary.goalCalories}")
                 VerticalDivider(modifier = Modifier.height(30.dp).width(1.dp), color = Color(0xFFF0F0F0))
-                InfoColumn("Kalan", "${summary.caloriesLeft}", Color(0xFFE31E24))
+                InfoColumn("Kalan", "${summary.caloriesLeft}", com.yusufvural.kaloritakip.ui.theme.PrimaryRed)
             }
         }
     }

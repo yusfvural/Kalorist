@@ -8,11 +8,21 @@ import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val auth: com.google.firebase.auth.FirebaseAuth
 ) : UserRepository {
-    override fun getUser(): Flow<UserEntity?> = userDao.getUser()
+    
+    private val currentUserId: String?
+        get() = auth.currentUser?.uid
+        
+    override fun getUser(): Flow<UserEntity?> {
+        val uid = currentUserId ?: return kotlinx.coroutines.flow.emptyFlow()
+        return userDao.getUser(uid)
+    }
 
     override suspend fun saveUser(user: UserEntity) {
-        userDao.insertUser(user)
+        val uid = currentUserId ?: return
+        // Ensure the ID matches the authenticated user
+        userDao.insertUser(user.copy(id = uid))
     }
 }

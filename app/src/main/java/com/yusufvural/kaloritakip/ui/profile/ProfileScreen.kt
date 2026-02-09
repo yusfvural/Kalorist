@@ -33,7 +33,7 @@ fun ProfileScreen(
     val viewModel: androidx.lifecycle.ViewModel = androidx.hilt.navigation.compose.hiltViewModel<ProfileViewModel>()
     val profileViewModel = viewModel as ProfileViewModel
     val currentUser by profileViewModel.currentUser.collectAsState()
-    val user = currentUser ?: UserEntity()
+    val user = currentUser ?: UserEntity(id = "")
 
     // Dialog States
     var showCalorieDialog by remember { mutableStateOf(false) }
@@ -54,62 +54,60 @@ fun ProfileScreen(
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // --- MINIMALIST HEADER ---
-            // Removed Gradient/Large Blocks. Using clean whitespace.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-               Column {
-                   Text(
-                       text = "Profilim",
-                       style = MaterialTheme.typography.headlineMedium.copy(
-                           fontWeight = FontWeight.Bold,
-                           color = contentColor,
-                           fontSize = 32.sp // Increased +4sp
-                       )
-                   )
-                   Text(
-                       text = "Hoş geldin!",
-                       style = MaterialTheme.typography.bodyMedium.copy(
-                           color = subTextColor,
-                           fontWeight = FontWeight.Medium,
-                           fontSize = 18.sp // Increased +4sp
-                       )
-                   )
-               }
-
-                // Simplified Avatar
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(PrimaryContainer), // Light red bg
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Person,
-                        contentDescription = null,
-                        tint = PrimaryRed,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-            }
-
             // --- SCROLLABLE CONTENT ---
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp),
-                contentPadding = PaddingValues(bottom = 32.dp), // Reduced from 100.dp to 32.dp based on user feedback
-                verticalArrangement = Arrangement.spacedBy(32.dp) // Generous spacing
+                contentPadding = PaddingValues(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
+                // HEADER SECTION
+                item {
+                    Column {
+                        // Header Row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp), // Removed horizontal padding (handled by LazyColumn)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Profilim",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = contentColor,
+                                    fontSize = 32.sp
+                                )
+                            )
+                            Text(
+                                text = "Merhaba, ${user.name}",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = subTextColor,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 18.sp
+                                )
+                            )
+                        }
+
+                        // Simplified Avatar
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(PrimaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Person,
+                                contentDescription = null,
+                                tint = PrimaryRed,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
                 // PERSONAL INFO ROW
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -237,7 +235,7 @@ fun ProfileScreen(
                             onNavigate("auth")
                         },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
-                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFEF4444)) // Red 500
+                        colors = ButtonDefaults.textButtonColors(contentColor = PrimaryRed) // Red 500
                     ) {
                         Text(
                             text = "Çıkış Yap",
@@ -249,7 +247,7 @@ fun ProfileScreen(
                     }
                 }
             }
-        }
+
     }
 
     // --- DIALOGS (Kept same logic, simplified styles inside if needed) ---

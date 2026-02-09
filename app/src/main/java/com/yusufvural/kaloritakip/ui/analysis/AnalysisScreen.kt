@@ -290,7 +290,7 @@ fun ActivitiesCard(
                    imageVector = Icons.Default.DirectionsRun,
                    contentDescription = "Adımlar",
                    modifier = Modifier.size(48.dp),
-                   tint = Color(0xFFE53935) // Kırmızı
+                   tint = com.yusufvural.kaloritakip.ui.theme.PrimaryRed // Burgundy
                )
                Spacer(modifier = Modifier.width(16.dp))
                Column(modifier = Modifier.weight(1f)) {
@@ -310,7 +310,7 @@ fun ActivitiesCard(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { /* Adım sayar bağlantısı */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)), // Kırmızı
+                colors = ButtonDefaults.buttonColors(containerColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed), // Burgundy
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
@@ -446,7 +446,7 @@ fun AddExerciseDialog(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFE53935), // Modern Red
+                            containerColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed, // Modern Burgundy
                             contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(12.dp),

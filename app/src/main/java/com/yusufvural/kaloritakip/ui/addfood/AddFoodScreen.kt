@@ -45,7 +45,7 @@ fun AddFoodScreen(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp)),
             placeholder = { Text("Yemek, marka veya barkod...", color = Color.Gray) },
-            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = Color(0xFFE31E24)) },
+            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = com.yusufvural.kaloritakip.ui.theme.PrimaryRed) },
             trailingIcon = { 
                 IconButton(onClick = { /* Barkod Aç */ }) {
                     Icon(Icons.Rounded.QrCodeScanner, contentDescription = null, tint = Color.Gray)
@@ -54,7 +54,7 @@ fun AddFoodScreen(
             singleLine = true,
             shape = RoundedCornerShape(20.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFE31E24),
+                focusedBorderColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed,
                 unfocusedBorderColor = Color(0xFFEEEEEE),
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White
@@ -76,7 +76,7 @@ fun AddFoodScreen(
                     label = { Text(category) },
                     shape = CircleShape,
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFFE31E24),
+                        selectedContainerColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed,
                         selectedLabelColor = Color.White
                     )
                 )
@@ -141,18 +141,18 @@ fun FoodResultItem(name: String, portion: String, cal: String, onClick: () -> Un
             }
             
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(cal, fontWeight = FontWeight.ExtraBold, color = Color(0xFFE31E24), fontSize = 16.sp)
+                Text(cal, fontWeight = FontWeight.ExtraBold, color = com.yusufvural.kaloritakip.ui.theme.PrimaryRed, fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(12.dp))
                 // Hızlı Ekleme Butonu
                 Box(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE31E24).copy(alpha = 0.1f))
+                        .background(com.yusufvural.kaloritakip.ui.theme.PrimaryRed.copy(alpha = 0.1f))
                         .clickable { /* Ekleme Mantığı */ },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Rounded.Add, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Rounded.Add, contentDescription = null, tint = com.yusufvural.kaloritakip.ui.theme.PrimaryRed, modifier = Modifier.size(20.dp))
                 }
             }
         }

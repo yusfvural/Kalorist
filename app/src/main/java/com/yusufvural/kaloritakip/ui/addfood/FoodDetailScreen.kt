@@ -73,11 +73,11 @@ fun FoodDetailScreen(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE31E24).copy(alpha = 0.05f))
-                    .border(1.dp, Color(0xFFE31E24).copy(alpha = 0.1f), CircleShape),
+                    .background(com.yusufvural.kaloritakip.ui.theme.PrimaryRed.copy(alpha = 0.05f))
+                    .border(1.dp, com.yusufvural.kaloritakip.ui.theme.PrimaryRed.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Rounded.Fastfood, contentDescription = null, tint = Color(0xFFE31E24), modifier = Modifier.size(50.dp))
+                Icon(Icons.Rounded.Fastfood, contentDescription = null, tint = com.yusufvural.kaloritakip.ui.theme.PrimaryRed, modifier = Modifier.size(50.dp))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -121,7 +121,7 @@ fun FoodDetailScreen(
                             fontSize = 64.sp,
                             letterSpacing = (-2).sp
                         ), 
-                        color = Color(0xFFE31E24)
+                        color = com.yusufvural.kaloritakip.ui.theme.PrimaryRed
                     )
                     Text(
                         "kcal", 
@@ -186,7 +186,7 @@ fun FoodDetailScreen(
                 Text(
                     "${portion.roundToInt()} g", 
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
-                    color = Color(0xFFE31E24)
+                    color = com.yusufvural.kaloritakip.ui.theme.PrimaryRed
                 )
             }
             
@@ -198,9 +198,9 @@ fun FoodDetailScreen(
                 valueRange = 10f..500f,
                 steps = 49,
                 colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFFE31E24),
-                    activeTrackColor = Color(0xFFE31E24),
-                    inactiveTrackColor = Color(0xFFE31E24).copy(alpha = 0.1f)
+                    thumbColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed,
+                    activeTrackColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed,
+                    inactiveTrackColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed.copy(alpha = 0.1f)
                 )
             )
 
@@ -213,7 +213,7 @@ fun FoodDetailScreen(
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE31E24))
+                colors = ButtonDefaults.buttonColors(containerColor = com.yusufvural.kaloritakip.ui.theme.PrimaryRed)
             ) {
                 Text(
                     "Günüme Ekle", 
@@ -233,9 +233,9 @@ fun MealTypeOption(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = if (isSelected) Color(0xFFE31E24) else Color.White
+    val backgroundColor = if (isSelected) com.yusufvural.kaloritakip.ui.theme.PrimaryRed else Color.White
     val contentColor = if (isSelected) Color.White else Color.Black
-    val borderColor = if (isSelected) Color(0xFFE31E24) else Color(0xFFE0E0E0)
+    val borderColor = if (isSelected) com.yusufvural.kaloritakip.ui.theme.PrimaryRed else Color(0xFFE0E0E0)
 
     Box(
         modifier = modifier

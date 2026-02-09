@@ -86,23 +86,46 @@ fun RegisterScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = state.name,
-                        onValueChange = { viewModel.onEvent(RegisterEvent.NameChanged(it)) },
-                        label = { Text("Ad Soyad") },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                            focusedBorderColor = PrimaryRed
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = state.firstName,
+                            onValueChange = { viewModel.onEvent(RegisterEvent.FirstNameChanged(it)) },
+                            label = { Text("Ad") },
+                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                focusedBorderColor = PrimaryRed
+                            )
                         )
-                    )
+
+                        OutlinedTextField(
+                            value = state.lastName,
+                            onValueChange = { viewModel.onEvent(RegisterEvent.LastNameChanged(it)) },
+                            label = { Text("Soyad") },
+                            leadingIcon = null, // Optional: No icon or another Person icon
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                focusedBorderColor = PrimaryRed
+                            )
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 

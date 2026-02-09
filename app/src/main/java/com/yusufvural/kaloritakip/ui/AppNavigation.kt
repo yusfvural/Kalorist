@@ -40,20 +40,15 @@ fun AppNavHost(navController: NavHostController) {
         exitTransition = { fadeOut(animationSpec = tween(300)) }
     ) {
         composable("splash") {
-            // Basit bir Splash kontrolü
-            LaunchedEffect(Unit) {
-                delay(1000) // Logo gösterimi için kısa bir bekleme
-                if (FirebaseAuth.getInstance().currentUser != null) {
-                    navController.navigate("dashboard") {
-                        popUpTo("splash") { inclusive = true }
-                    }
-                } else {
-                    navController.navigate("auth") {
+            com.yusufvural.kaloritakip.ui.splash.SplashScreen(
+                onNavigateToDashboard = {
+                    val currentUser = FirebaseAuth.getInstance().currentUser
+                    val targetRoute = if (currentUser != null) "dashboard" else "auth"
+                    navController.navigate(targetRoute) {
                         popUpTo("splash") { inclusive = true }
                     }
                 }
-            }
-            // Splash UI (Boş veya Logo olabilir, şimdilik boş bırakıyoruz veya basit bir Loading koyabiliriz)
+            )
         }
 
         navigation(startDestination = "login", route = "auth") {

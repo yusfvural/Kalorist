@@ -22,8 +22,11 @@ class RegisterViewModel @Inject constructor(
 
     fun onEvent(event: RegisterEvent) {
         when (event) {
-            is RegisterEvent.NameChanged -> {
-                _state.update { it.copy(name = event.name, error = null) }
+            is RegisterEvent.FirstNameChanged -> {
+                _state.update { it.copy(firstName = event.firstName, error = null) }
+            }
+            is RegisterEvent.LastNameChanged -> {
+                _state.update { it.copy(lastName = event.lastName, error = null) }
             }
             is RegisterEvent.EmailChanged -> {
                 _state.update { it.copy(email = event.email, error = null) }
@@ -52,11 +55,12 @@ class RegisterViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val result = registerUseCase(currentState.name, currentState.email, currentState.password)
+            val fullName = "${currentState.firstName} ${currentState.lastName}".trim()
+            val result = registerUseCase(fullName, currentState.email, currentState.password)
             
             result.onSuccess {
                 // Save user locally
-                userRepository.saveUser(com.yusufvural.kaloritakip.model.UserEntity(name = currentState.name))
+                userRepository.saveUser(com.yusufvural.kaloritakip.model.UserEntity(id = "", name = fullName))
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { error ->
                 _state.update { it.copy(isLoading = false, error = error.message) }
@@ -66,7 +70,8 @@ class RegisterViewModel @Inject constructor(
 }
 
 data class RegisterState(
-    val name: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
     val email: String = "",
     val password: String = "",
     val confirmPassword: String = "",
@@ -76,7 +81,8 @@ data class RegisterState(
 )
 
 sealed class RegisterEvent {
-    data class NameChanged(val name: String) : RegisterEvent()
+    data class FirstNameChanged(val firstName: String) : RegisterEvent()
+    data class LastNameChanged(val lastName: String) : RegisterEvent()
     data class EmailChanged(val email: String) : RegisterEvent()
     data class PasswordChanged(val password: String) : RegisterEvent()
     data class ConfirmPasswordChanged(val confirmPassword: String) : RegisterEvent()
